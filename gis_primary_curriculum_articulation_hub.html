@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#F0EAE2]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS Primary Curriculum Articulation & Progression Hub</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gis: {
+                            blue: '#011A57',       /* Deep Blue for body copy & deep headers */
+                            green: '#219360',      /* Garden Green for CTAs & emphasis */
+                            beige: '#F0EAE2',      /* Beige for section background */
+                            sheergold: '#D6C6AC',  /* Sheer Gold for main titles */
+                            gold: '#AE8B5A',       /* Gold for emphasis text & link text */
+                            goldlight: '#FAF6EE'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Trebuchet MS"', 'sans-serif'],
+                        serif: ['Georgia', '"Freight Disp"', 'serif'],
+                        display: ['Georgia', '"Freight Disp"', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Alpine.js v3 for reactive state management -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Trebuchet MS', sans-serif;
+            background-color: #F0EAE2;
+            color: #011A57;
+        }
+
+        h1, h2, h3, .font-serif-gis {
+            font-family: 'Georgia', 'Freight Disp', serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F0EAE2;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #D6C6AC;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #AE8B5A;
+        }
+
+        /* Green accent bar from visual guide */
+        .gis-accent-bar {
+            width: 32px;
+            height: 4px;
+            background-color: #219360;
+            border-radius: 2px;
+            margin-bottom: 6px;
+        }
+
+        .gis-gradient-header {
+            background-color: #011A57;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; }
+        }
+        @media screen {
+            .print-only { display: none !important; }
+        }
+    </style>
+</head>
+<body x-data="curriculumApp()" class="h-full flex flex-col font-sans antialiased bg-[#F0EAE2] text-[#011A57]">
+
+    <header class="gis-gradient-header text-white shadow-md border-b-4 border-[#219360] sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                
+                <!-- Brand Title & Crest -->
+                <div class="flex items-center space-x-3.5">
+                    <div class="w-11 h-11 bg-[#219360] rounded-xl flex items-center justify-center text-white font-bold text-xl shadow border border-white/20 shrink-0">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-[#D6C6AC] bg-white/10 px-2 py-0.5 rounded border border-[#D6C6AC]/30">Garden International School</span>
+                            <span class="text-[10px] bg-[#219360]/30 text-emerald-200 font-bold px-2 py-0.5 rounded border border-[#219360]/50">Primary Division</span>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold font-serif tracking-tight text-[#D6C6AC] leading-tight">
+                            Curriculum Articulation & Progression Hub
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Global Search & Unit Basket Trigger -->
+                <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                    <!-- Search Input -->
+                    <div class="relative flex-1 md:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#D6C6AC] text-xs"></i>
+                        <input type="text" x-model="searchQuery" placeholder="Search KPIs, topics, goals..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#219360] focus:bg-white/20 transition">
+                    </div>
+
+                    <!-- Unit Basket Button using CTA Green #219360 -->
+                    <button @click="showBasket = true" class="relative px-3.5 py-1.5 bg-[#219360] hover:bg-[#1b7a4f] text-white font-bold text-xs rounded-lg transition shadow flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        <span class="hidden sm:inline font-serif">Unit Basket</span>
+                        <span x-text="savedKPIs.length" class="w-5 h-5 bg-[#011A57] text-[#D6C6AC] text-[10px] font-extrabold rounded-full flex items-center justify-center">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs & Phase Filter Pill -->
+            <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <nav class="flex space-x-1 sm:space-x-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                    <button @click="activeTab = 'termly'" :class="activeTab === 'termly' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days text-[#D6C6AC]"></i> Termly Long-Term Map
+                    </button>
+                    <button @click="activeTab = 'matrix'" :class="activeTab === 'matrix' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-table-cells text-[#D6C6AC]"></i> Curriculum Matrix
+                    </button>
+                    <button @click="activeTab = 'deepdive'" :class="activeTab === 'deepdive' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass-location text-[#D6C6AC]"></i> Year Deep Dive
+                    </button>
+                    <button @click="activeTab = 'progression'" :class="activeTab === 'progression' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-stairs text-[#D6C6AC]"></i> Progression Ladder
+                    </button>
+                    <button @click="activeTab = 'scaffolder'" :class="activeTab === 'scaffolder' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group text-[#D6C6AC]"></i> Lesson Scaffolder
+                    </button>
+                    <button @click="activeTab = 'grasps'" :class="activeTab === 'grasps' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-bullseye text-[#D6C6AC]"></i> UbD GRASPS Builder
+                    </button>
+                    <button @click="activeTab = 'compare'" :class="activeTab === 'compare' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white/80 hover:text-white hover:bg-white/10'" class="px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-code-compare text-[#D6C6AC]"></i> Phase Comparison
+                    </button>
+                </nav>
+
+                <!-- Key Stage Quick Filter Pills -->
+                <div class="flex items-center gap-1 bg-white/10 p-1 rounded-lg border border-white/10 shrink-0">
+                    <span class="text-[10px] text-[#D6C6AC] font-bold uppercase px-1.5">Phase:</span>
+                    <button @click="setPhaseFilter('all')" :class="selectedPhase === 'all' ? 'bg-[#219360] text-white font-bold' : 'text-white/80 hover:text-white'" class="px-2 py-0.5 rounded text-[11px] transition">All</button>
+                    <button @click="setPhaseFilter('ks1')" :class="selectedPhase === 'ks1' ? 'bg-[#219360] text-white font-bold' : 'text-white/80 hover:text-white'" class="px-2 py-0.5 rounded text-[11px] transition">KS1 (Y1-2)</button>
+                    <button @click="setPhaseFilter('lks2')" :class="selectedPhase === 'lks2' ? 'bg-[#219360] text-white font-bold' : 'text-white/80 hover:text-white'" class="px-2 py-0.5 rounded text-[11px] transition">LKS2 (Y3-4)</button>
+                    <button @click="setPhaseFilter('uks2')" :class="selectedPhase === 'uks2' ? 'bg-[#219360] text-white font-bold' : 'text-white/80 hover:text-white'" class="px-2 py-0.5 rounded text-[11px] transition">UKS2 (Y5-6)</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- VIEW 1: TERMLY LONG-TERM MAP (Terms 1.1, 1.2, 2, 3) -->
+        <div x-show="activeTab === 'termly'" x-transition class="space-y-5">
+            
+            <!-- Banner with Visual Guide Accent Line -->
+            <div class="bg-[#011A57] text-white p-6 rounded-xl shadow-md border-b-4 border-[#219360] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <div class="gis-accent-bar"></div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#D6C6AC] block mb-1">CURRICULUM ARTICULATION HUB</span>
+                    <h2 class="text-2xl font-bold font-serif text-[#D6C6AC] flex items-center gap-2">
+                        Termly Long-Term Curriculum Overview
+                    </h2>
+                    <p class="text-xs text-slate-200 mt-1 max-w-3xl leading-relaxed">
+                        Comprehensive year and termly breakdown (Terms 1.1, 1.2, 2, 3) across Geography, History, Design & Technology, and Digital Learning.
+                    </p>
+                </div>
+
+                <!-- Single Year vs Phase Display Toggle -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white/10 p-2 rounded-xl border border-white/20">
+                    <div class="flex items-center bg-black/20 p-1 rounded-lg text-xs font-semibold text-white">
+                        <button @click="termDisplayMode = 'single'" :class="termDisplayMode === 'single' ? 'bg-[#219360] text-white font-bold' : 'text-white/80 hover:text-white'" class="px-2.5 py-1 rounded transition text-[11px]">
+                            Single Year
+                        </button>
+                        <button @click="termDisplayMode = 'phase'" :class="termDisplayMode === 'phase' ? 'bg-[#219360] text-white font-bold' : 'text-white/80 hover:text-white'" class="px-2.5 py-1 rounded transition text-[11px]">
+                            All Phase Years
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-1 overflow-x-auto">
+                        <template x-for="y in visibleYears" :key="y">
+                            <button @click="selectedYear = y; termDisplayMode = 'single'" 
+                                    :class="selectedYear === y && termDisplayMode === 'single' ? 'bg-[#219360] text-white font-bold shadow' : 'text-white hover:bg-white/20'" 
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold transition">
+                                <span x-text="`Y${y}`"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Term Filter & Subject Bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between bg-white p-3 rounded-xl border border-slate-300 text-xs gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-[#011A57] uppercase tracking-wider text-[11px]">Term Filter:</span>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button @click="selectedTermFilter = 'all'" :class="selectedTermFilter === 'all' ? 'bg-[#011A57] text-white font-bold' : 'bg-[#F0EAE2] text-[#011A57] hover:bg-slate-200'" class="px-3 py-1 rounded-lg transition">All Terms</button>
+                        <button @click="selectedTermFilter = '1.1'" :class="selectedTermFilter === '1.1' ? 'bg-[#011A57] text-white font-bold' : 'bg-[#F0EAE2] text-[#011A57] hover:bg-slate-200'" class="px-3 py-1 rounded-lg transition">Term 1.1</button>
+                        <button @click="selectedTermFilter = '1.2'" :class="selectedTermFilter === '1.2' ? 'bg-[#011A57] text-white font-bold' : 'bg-[#F0EAE2] text-[#011A57] hover:bg-slate-200'" class="px-3 py-1 rounded-lg transition">Term 1.2</button>
+                        <button @click="selectedTermFilter = '2'" :class="selectedTermFilter === '2' ? 'bg-[#011A57] text-white font-bold' : 'bg-[#F0EAE2] text-[#011A57] hover:bg-slate-200'" class="px-3 py-1 rounded-lg transition">Term 2</button>
+                        <button @click="selectedTermFilter = '3'" :class="selectedTermFilter === '3' ? 'bg-[#011A57] text-white font-bold' : 'bg-[#F0EAE2] text-[#011A57] hover:bg-slate-200'" class="px-3 py-1 rounded-lg transition">Term 3</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-600 font-medium">Subject Focus:</span>
+                    <select x-model="selectedSubject" class="p-1.5 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-bold text-[#011A57]">
+                        <template x-for="s in subjects" :key="s.id">
+                            <option :value="s.id" x-text="s.name"></option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TERMLY MAP GRID -->
+            <template x-for="yearNum in (termDisplayMode === 'single' ? [selectedYear] : visibleYears)" :key="yearNum">
+                <div class="space-y-4">
+                    
+                    <div class="flex items-center justify-between p-3.5 bg-white rounded-xl border-l-4 border-[#219360] border border-slate-200 shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-[#011A57] text-[#D6C6AC] font-extrabold flex items-center justify-center text-sm" x-text="`Y${yearNum}`"></span>
+                            <div>
+                                <h3 class="text-lg font-bold text-[#011A57] font-serif" x-text="`Year ${yearNum} Curriculum Map`"></h3>
+                                <p class="text-xs text-slate-500" x-text="`Phase: ${getYearPhase(yearNum)} • Terms 1.1, 1.2, 2, and 3`"></p>
+                            </div>
+                        </div>
+
+                        <button @click="selectedYear = yearNum; activeTab = 'deepdive'" class="px-3 py-1.5 bg-[#219360] text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow-xs">
+                            Year Deep Dive <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- 4-Term Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <template x-for="unit in getTermUnitsForYear(yearNum)" :key="unit.termId">
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition border-t-4 border-[#011A57]">
+                                
+                                <div>
+                                    <div class="p-4 bg-[#F0EAE2] border-b border-slate-200 flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2.5 py-1 rounded-md text-xs font-bold text-white bg-[#011A57]" x-text="`Term ${unit.term}`"></span>
+                                            <span class="text-xs font-bold text-[#011A57]" x-text="unit.termName"></span>
+                                        </div>
+                                        <span class="text-[11px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200" x-text="unit.duration"></span>
+                                    </div>
+
+                                    <div class="p-4 space-y-3">
+                                        <div>
+                                            <span class="text-[10px] font-bold text-[#AE8B5A] uppercase tracking-wider block mb-0.5">Integrated Theme</span>
+                                            <h4 class="text-base font-bold text-[#011A57] font-serif leading-snug" x-text="unit.title"></h4>
+                                        </div>
+
+                                        <div class="p-3 rounded-lg bg-[#F0EAE2] border border-[#D6C6AC]/60">
+                                            <span class="text-[10px] font-bold text-[#011A57] uppercase tracking-wider block mb-1">
+                                                <i class="fa-solid fa-lightbulb text-[#AE8B5A] mr-1"></i> Big Inquiry Question
+                                            </span>
+                                            <p class="text-xs font-semibold text-slate-800 italic" x-text="unit.bigQuestion"></p>
+                                        </div>
+
+                                        <!-- Subject Breakdown -->
+                                        <div class="space-y-2 pt-1">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Subject Targets & Outcomes</span>
+                                            
+                                            <div class="space-y-2">
+                                                <template x-for="(sub, sKey) in unit.subjects" :key="sKey">
+                                                    <div x-show="selectedSubject === 'all' || selectedSubject === sKey" class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                                                        <div class="flex items-center justify-between">
+                                                            <div class="flex items-center gap-1.5 font-bold text-xs text-[#011A57]">
+                                                                <i :class="getSubjectIcon(sKey)"></i>
+                                                                <span x-text="getSubjectTitle(sKey)"></span>
+                                                                <span class="text-[10px] text-[#D6C6AC] bg-[#011A57] px-1.5 py-0.2 rounded" x-text="sub.tgCode"></span>
+                                                            </div>
+                                                            <button @click="addToBasket(sKey, sub.tgCode, unit.title, yearNum, sub.kpi)" class="text-[10px] text-[#219360] font-bold hover:underline flex items-center gap-0.5">
+                                                                <i class="fa-solid fa-plus text-[9px]"></i> Add
+                                                            </button>
+                                                        </div>
+                                                        <p class="text-xs font-bold text-slate-800" x-text="sub.topic"></p>
+                                                        <p class="text-[11px] text-slate-600 font-medium leading-snug" x-text="sub.kpi"></p>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-[#F0EAE2] border-t border-slate-200 flex items-center justify-between text-xs">
+                                    <span class="text-[11px] text-slate-500 font-medium" x-text="`Year ${yearNum} Term ${unit.term}`"></span>
+                                    <button @click="loadTermIntoGrasps(unit, yearNum)" class="px-3 py-1 bg-[#219360] text-white font-bold rounded text-[11px] hover:bg-[#1b7a4f] transition flex items-center gap-1 shadow-xs">
+                                        Build GRASPS Task <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </template>
+                    </div>
+
+                </div>
+            </template>
+
+        </div>
+
+        <!-- VIEW 2: MULTI-SUBJECT VERTICAL MATRIX -->
+        <div x-show="activeTab === 'matrix'" x-transition class="space-y-5">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-[#011A57] text-[#D6C6AC] flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-table"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-[#011A57] font-serif">Multi-Subject Vertical Progression Matrix</h2>
+                        <p class="text-xs text-slate-500">Trace progression of all 14 Transfer Goals across Year 1 through Year 6</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <template x-for="subj in subjects" :key="subj.id">
+                        <button @click="selectedSubject = subj.id" 
+                                :class="selectedSubject === subj.id ? 'bg-[#219360] text-white font-bold shadow' : 'bg-[#F0EAE2] text-[#011A57] hover:bg-slate-200'" 
+                                class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5">
+                            <i :class="subj.icon"></i>
+                            <span x-text="subj.name"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Matrix Table Card -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-[#011A57] text-white text-[11px] uppercase tracking-wider font-bold">
+                                <th class="p-3.5 w-56 border-r border-white/10">Transfer Goal (TG)</th>
+                                <template x-for="y in [1, 2, 3, 4, 5, 6]" :key="y">
+                                    <th x-show="isYearVisible(y)" class="p-3 border-r border-white/10 min-w-[220px] text-center">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <span x-text="`Year ${y}`" class="font-extrabold text-[#D6C6AC]"></span>
+                                            <span class="text-[9px] bg-white/20 px-1.5 py-0.2 rounded font-normal text-white" x-text="getYearPhase(y)"></span>
+                                        </div>
+                                    </th>
+                                </template>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <template x-for="tg in filteredTransferGoals" :key="tg.id">
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-3.5 bg-[#F0EAE2] font-semibold text-[#011A57] border-r border-slate-200 align-top">
+                                        <div class="flex items-center gap-1.5 text-[#011A57] font-bold text-xs mb-1">
+                                            <i :class="getSubjectIcon(tg.subject)" class="text-[#AE8B5A]"></i>
+                                            <span x-text="tg.subject.toUpperCase() + ' ' + tg.code"></span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-800 font-medium leading-snug" x-text="tg.title"></div>
+                                    </td>
+
+                                    <template x-for="y in [1, 2, 3, 4, 5, 6]" :key="y">
+                                        <td x-show="isYearVisible(y)" class="p-3 border-r border-slate-200 align-top bg-white hover:bg-[#F0EAE2]/50 transition">
+                                            <template x-if="tg.years[y]">
+                                                <div class="space-y-2">
+                                                    <div class="p-2 bg-[#F0EAE2] rounded-lg border border-slate-200">
+                                                        <span class="text-[9px] font-bold text-[#011A57] uppercase tracking-wider block mb-0.5">Target KPI</span>
+                                                        <p class="text-[11px] font-bold text-slate-900 leading-snug" x-text="tg.years[y].kpi"></p>
+                                                    </div>
+                                                    <div class="space-y-1 text-[10px] text-slate-600">
+                                                        <p><strong class="text-[#011A57]">Knowledge:</strong> <span x-text="tg.years[y].knowledge"></span></p>
+                                                        <p><strong class="text-[#011A57]">Skills:</strong> <span x-text="tg.years[y].skills"></span></p>
+                                                        <p><strong class="text-[#011A57]">Understanding:</strong> <span x-text="tg.years[y].understanding"></span></p>
+                                                    </div>
+                                                    <button @click="addToBasket(tg.subject, tg.code, tg.title, y, tg.years[y].kpi)" 
+                                                            class="mt-2 w-full py-1 px-2 bg-[#219360]/10 hover:bg-[#219360] hover:text-white text-[#219360] border border-[#219360]/30 rounded text-[10px] font-bold transition flex items-center justify-center gap-1">
+                                                        <i class="fa-solid fa-plus text-[9px]"></i> Add KPI to Basket
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: YEAR DEEP DIVE -->
+        <div x-show="activeTab === 'deepdive'" x-transition class="space-y-5">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-[#011A57] font-serif" x-text="`Year ${selectedYear} (${getYearPhase(selectedYear)}) Comprehensive Deep Dive`"></h2>
+                    <p class="text-xs text-slate-500">Examine declarative knowledge, practical skills, and conceptual understanding for Year ${selectedYear}.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-[#011A57]">Select Year Group:</label>
+                    <select x-model="selectedYear" class="p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-bold text-[#011A57]">
+                        <template x-for="y in visibleYears" :key="y">
+                            <option :value="y" x-text="`Year ${y} (${getYearPhase(y)})`"></option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-4 bg-[#011A57] text-white rounded-xl shadow-xs border-b-4 border-[#219360]">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-[#D6C6AC] block mb-1">ANNUAL PROGRESSION BREAKDOWN</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <template x-for="u in getTermUnitsForYear(selectedYear)" :key="u.termId">
+                        <div class="p-3 bg-white/10 rounded-lg border border-white/20 space-y-1">
+                            <div class="flex items-center justify-between font-bold text-[#D6C6AC]">
+                                <span x-text="`Term ${u.term}`"></span>
+                                <span class="text-[10px] text-white/80" x-text="u.duration"></span>
+                            </div>
+                            <h4 class="font-bold text-white text-xs leading-tight" x-text="u.title"></h4>
+                            <p class="text-[10px] text-white/70 italic line-clamp-2" x-text="u.bigQuestion"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Subject Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <template x-for="subj in subjects" :key="subj.id">
+                    <div x-show="subj.id !== 'all'" class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg bg-[#011A57]/10 text-[#011A57] flex items-center justify-center text-base font-bold">
+                                    <i :class="subj.icon"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-[#011A57] text-sm font-serif" x-text="subj.name"></h3>
+                                    <span class="text-[10px] text-slate-500 uppercase font-bold" x-text="`Year ${selectedYear} Learning Intentions`"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <template x-for="tg in getTGsBySubjectAndYear(subj.id, selectedYear)" :key="tg.code">
+                                <div class="p-3 bg-[#F0EAE2]/50 rounded-lg border border-slate-200 space-y-1.5 text-xs">
+                                    <div class="flex items-center justify-between font-bold text-[#011A57] text-[11px]">
+                                        <span x-text="tg.code + ': ' + tg.title"></span>
+                                        <button @click="addToBasket(subj.id, tg.code, tg.title, selectedYear, tg.kpi)" class="text-[10px] text-[#219360] font-bold hover:underline">+ Basket</button>
+                                    </div>
+                                    <div class="text-slate-900 font-bold" x-text="tg.kpi"></div>
+                                    <div class="grid grid-cols-3 gap-2 text-[10px] pt-1 text-slate-600 border-t border-slate-200">
+                                        <div><strong class="block text-[#011A57]">Knowledge:</strong> <span x-text="tg.knowledge"></span></div>
+                                        <div><strong class="block text-[#011A57]">Skills:</strong> <span x-text="tg.skills"></span></div>
+                                        <div><strong class="block text-[#011A57]">Understanding:</strong> <span x-text="tg.understanding"></span></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- VIEW 4: TRANSFER GOAL PROGRESSION LADDER -->
+        <div x-show="activeTab === 'progression'" x-transition class="space-y-5">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-[#011A57] font-serif">Transfer Goal Progression Ladder</h2>
+                    <p class="text-xs text-slate-500">Trace a single Transfer Goal's evolutionary step-by-step ladder across Y1 through Y6.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-[#011A57]">Select Goal:</label>
+                    <select x-model="selectedGoalId" class="p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-bold text-[#011A57]">
+                        <template x-for="tg in allGoalsList" :key="tg.id">
+                            <option :value="tg.id" x-text="`[${tg.subject.toUpperCase()}] ${tg.code}: ${tg.title}`"></option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+
+            <div x-data="{ currentGoal() { return getGoalById(selectedGoalId); } }" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                <div class="p-4 bg-[#011A57] text-white rounded-xl border-l-4 border-[#219360] flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-[#D6C6AC] uppercase tracking-wider" x-text="currentGoal().subject.toUpperCase() + ' ' + currentGoal().code"></span>
+                        <h3 class="text-base font-bold font-serif text-white" x-text="currentGoal().title"></h3>
+                    </div>
+                    <i :class="getSubjectIcon(currentGoal().subject)" class="text-2xl text-[#D6C6AC]"></i>
+                </div>
+
+                <div class="relative border-l-2 border-[#219360] ml-4 pl-6 space-y-6">
+                    <template x-for="y in [1, 2, 3, 4, 5, 6]" :key="y">
+                        <div class="relative group">
+                            <div class="absolute -left-[31px] top-1.5 w-6 h-6 rounded-full bg-[#011A57] border-2 border-[#219360] text-white font-bold flex items-center justify-center text-[10px]" x-text="y"></div>
+                            
+                            <div class="p-4 bg-[#F0EAE2]/60 rounded-xl border border-slate-200 shadow-xs hover:border-[#219360] transition">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="font-bold text-[#011A57] text-xs" x-text="`Year ${y} (${getYearPhase(y)})`"></span>
+                                    <button @click="addToBasket(currentGoal().subject, currentGoal().code, currentGoal().title, y, currentGoal().years[y]?.kpi)" class="text-[10px] font-bold text-[#219360] hover:underline">+ Add KPI</button>
+                                </div>
+                                <p class="text-xs font-bold text-slate-900 mb-2" x-text="currentGoal().years[y]?.kpi || 'N/A'"></p>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200">
+                                    <div><strong class="text-[#011A57]">Knowledge:</strong> <span x-text="currentGoal().years[y]?.knowledge || 'N/A'"></span></div>
+                                    <div><strong class="text-[#011A57]">Skills:</strong> <span x-text="currentGoal().years[y]?.skills || 'N/A'"></span></div>
+                                    <div><strong class="text-[#011A57]">Understanding:</strong> <span x-text="currentGoal().years[y]?.understanding || 'N/A'"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 5: LESSON SCAFFOLDER -->
+        <div x-show="activeTab === 'scaffolder'" x-transition class="space-y-5">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-[#011A57] font-serif">Instructional Lesson Scaffolder</h2>
+                    <p class="text-xs text-slate-500">Differentiate learning outcomes across Support, Core, and Extension tiers for lesson planning.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select x-model="scaffoldSubject" class="p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-bold text-[#011A57]">
+                        <option value="geography">Geography</option>
+                        <option value="history">History</option>
+                        <option value="design_tech">Design Tech</option>
+                        <option value="digital_learning">Digital Learning</option>
+                    </select>
+                    <select x-model="scaffoldYear" class="p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-bold text-[#011A57]">
+                        <template x-for="y in [1, 2, 3, 4, 5, 6]" :key="y">
+                            <option :value="y" x-text="`Year ${y}`"></option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-5">
+                <div class="p-4 bg-[#F0EAE2] border-l-4 border-[#AE8B5A] rounded-xl">
+                    <span class="text-[10px] font-bold text-[#011A57] uppercase tracking-wider block mb-0.5">Target Core Benchmark KPI</span>
+                    <h3 class="text-sm font-bold text-slate-900" x-text="getTGKpi(scaffoldSubject, scaffoldYear)"></h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="bg-white rounded-xl border-t-4 border-amber-500 border border-slate-200 p-5 space-y-3 shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-xs">S</span>
+                            <h3 class="font-bold text-[#011A57] text-sm font-serif">Support Tier (Scaffolding)</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Provide word banks, graphic organizers, visual prompts, sentence stems, and guided teacher modeling.
+                        </p>
+                        <ul class="text-xs text-slate-700 space-y-1 list-disc list-inside bg-[#F0EAE2]/50 p-3 rounded-lg border">
+                            <li>Sentence starters for explanations.</li>
+                            <li>Annotated image maps or physical manipulatives.</li>
+                            <li>Peer pairing during guided practice.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white rounded-xl border-t-4 border-[#011A57] border border-slate-200 p-5 space-y-3 shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#011A57] text-[#D6C6AC] font-bold flex items-center justify-center text-xs">C</span>
+                            <h3 class="font-bold text-[#011A57] text-sm font-serif">Core Tier (Grade-Level)</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Students work directly with the target year group KPI, applying declarative knowledge independently.
+                        </p>
+                        <ul class="text-xs text-slate-700 space-y-1 list-disc list-inside bg-[#F0EAE2]/50 p-3 rounded-lg border">
+                            <li>Independent data collection or map key creation.</li>
+                            <li>Formulating reasoned conclusions based on evidence.</li>
+                            <li>Self-assessing against success criteria.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white rounded-xl border-t-4 border-[#219360] border border-slate-200 p-5 space-y-3 shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#219360]/20 text-[#219360] font-bold flex items-center justify-center text-xs">E</span>
+                            <h3 class="font-bold text-[#011A57] text-sm font-serif">Extension Tier (Depth)</h3>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Encourage higher-order evaluation, synthesis across time/locations, and designing innovative solutions.
+                        </p>
+                        <ul class="text-xs text-slate-700 space-y-1 list-disc list-inside bg-[#F0EAE2]/50 p-3 rounded-lg border">
+                            <li>Critiquing data sources or environmental trade-offs.</li>
+                            <li>Connecting local findings to global SDG frameworks.</li>
+                            <li>Creating original digital or physical prototypes.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 6: UbD GRASPS PERFORMANCE TASK BUILDER -->
+        <div x-show="activeTab === 'grasps'" x-transition class="space-y-6">
+            <div class="bg-[#011A57] text-white p-6 rounded-xl shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b-4 border-[#219360]">
+                <div>
+                    <div class="gis-accent-bar"></div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-[#D6C6AC] block mb-1">UNDERSTANDING BY DESIGN (UbD)</span>
+                    <h2 class="text-2xl font-bold font-serif text-[#D6C6AC] flex items-center gap-2">
+                        GRASPS Performance Task Builder
+                    </h2>
+                    <p class="text-xs text-slate-200 mt-1 max-w-3xl leading-relaxed">
+                        Design authentic performance tasks grounded in selected KPIs using Wiggins & McTighe's GRASPS framework.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2 bg-white/10 p-2 rounded-xl border border-white/20">
+                    <button @click="loadGraspsPreset('tourism')" class="px-2.5 py-1.5 bg-[#219360] text-white text-xs font-bold rounded-lg hover:bg-[#1b7a4f] transition flex items-center gap-1">
+                        Tourism
+                    </button>
+                    <button @click="loadGraspsPreset('packaging')" class="px-2.5 py-1.5 bg-[#219360] text-white text-xs font-bold rounded-lg hover:bg-[#1b7a4f] transition flex items-center gap-1">
+                        DT Packaging
+                    </button>
+                    <button @click="loadGraspsPreset('history')" class="px-2.5 py-1.5 bg-[#219360] text-white text-xs font-bold rounded-lg hover:bg-[#1b7a4f] transition flex items-center gap-1">
+                        Museum
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Controls -->
+                <div class="lg:col-span-5 space-y-5">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <h3 class="font-bold text-xs font-serif text-[#011A57] uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-[#011A57] text-[#D6C6AC] flex items-center justify-center text-[10px]">1</span>
+                                Target KPIs & Context
+                            </h3>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Subject Area</label>
+                                <select x-model="graspsSubject" @change="updateGraspsKPIOptions()" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-medium text-[#011A57]">
+                                    <option value="geography">Geography</option>
+                                    <option value="history">History</option>
+                                    <option value="design_tech">Design Technology</option>
+                                    <option value="digital_learning">Digital Learning</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Year Group</label>
+                                <select x-model="graspsYear" @change="updateGraspsKPIOptions()" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs font-medium text-[#011A57]">
+                                    <template x-for="y in [1, 2, 3, 4, 5, 6]" :key="y">
+                                        <option :value="y" x-text="`Year ${y} (${getYearPhase(y)})`"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div x-show="savedKPIs.length > 0" class="p-2 bg-[#F0EAE2] rounded-lg border border-[#D6C6AC] text-xs">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-[#011A57] text-[11px]">Quick-Add from Basket:</span>
+                                <button @click="addAllBasketToGrasps()" class="text-[10px] text-[#219360] font-bold hover:underline">Add All</button>
+                            </div>
+                            <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar">
+                                <template x-for="(k, idx) in savedKPIs" :key="idx">
+                                    <button @click="addBasketKPIToGrasps(k)" class="px-2 py-0.5 bg-white border border-[#D6C6AC] hover:bg-[#219360] hover:text-white rounded text-[10px] font-medium transition truncate max-w-[200px]">
+                                        + <span x-text="`Y${k.year} ${k.tgCode}`"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 text-xs">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <h3 class="font-bold text-xs font-serif text-[#011A57] uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-[#011A57] text-[#D6C6AC] flex items-center justify-center text-[10px]">2</span>
+                                GRASPS Scenario Parameters
+                            </h3>
+                            <button @click="autoGenerateGRASPS()" class="px-2.5 py-1 bg-[#219360] text-white text-[10px] font-bold rounded transition flex items-center gap-1">
+                                Auto-Generate
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#011A57] mb-1">Goal</label>
+                            <input type="text" x-model="graspsTask.goal" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#011A57] mb-1">Role</label>
+                                <select x-model="graspsTask.role" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs">
+                                    <template x-for="r in graspsRolesList" :key="r"><option :value="r" x-text="r"></option></template>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#011A57] mb-1">Audience</label>
+                                <select x-model="graspsTask.audience" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs">
+                                    <template x-for="a in graspsAudienceList" :key="a"><option :value="a" x-text="a"></option></template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#011A57] mb-1">Situation (Context)</label>
+                            <textarea x-model="graspsTask.situation" rows="2" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#011A57] mb-1">Product Format</label>
+                                <select x-model="graspsProductType" @change="updateGraspsProductList()" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs">
+                                    <option value="Written">Written Output</option>
+                                    <option value="Oral">Oral Presentation</option>
+                                    <option value="Visual">Visual / Physical</option>
+                                    <option value="Digital">Digital / Interactive</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#011A57] mb-1">Specific Product</label>
+                                <select x-model="graspsTask.product" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs">
+                                    <template x-for="p in graspsProductOptions" :key="p"><option :value="p" x-text="p"></option></template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#011A57] mb-1">Standards & Criteria for Success</label>
+                            <textarea x-model="graspsTask.standards" rows="3" class="w-full p-2 bg-[#F0EAE2] border border-slate-300 rounded-lg text-xs"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Sheet Preview -->
+                <div class="lg:col-span-7">
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between h-full">
+                        <div>
+                            <div class="p-5 bg-[#011A57] text-white border-b-4 border-[#219360] flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-[#219360] text-white font-bold flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#D6C6AC]">Garden International School</span>
+                                        <h3 class="text-base font-bold font-serif text-[#D6C6AC] leading-tight" x-text="graspsTask.title || 'GRASPS Performance Task'"></h3>
+                                    </div>
+                                </div>
+                                <div class="text-right text-xs">
+                                    <span class="px-2 py-0.5 rounded bg-white/10 font-bold text-[#D6C6AC] text-[10px]" x-text="`Year ${graspsYear}`"></span>
+                                    <div class="text-[11px] text-white/70 mt-0.5" x-text="getSubjectTitle(graspsSubject)"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="p-3 rounded-lg bg-[#F0EAE2] border border-slate-300 flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded bg-[#219360] text-white font-bold flex items-center justify-center shrink-0 text-xs">G</div>
+                                    <div>
+                                        <span class="font-bold text-[#011A57] uppercase text-[10px] block mb-0.5">Goal</span>
+                                        <p class="text-slate-900 font-medium" x-text="graspsTask.goal"></p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="p-3 rounded-lg bg-[#F0EAE2] border border-slate-300 flex items-start gap-2.5">
+                                        <div class="w-6 h-6 rounded bg-[#011A57] text-[#D6C6AC] font-bold flex items-center justify-center shrink-0 text-xs">R</div>
+                                        <div>
+                                            <span class="font-bold text-[#011A57] uppercase text-[10px] block mb-0.5">Role</span>
+                                            <p class="text-slate-900 font-bold" x-text="graspsTask.role"></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 rounded-lg bg-[#F0EAE2] border border-slate-300 flex items-start gap-2.5">
+                                        <div class="w-6 h-6 rounded bg-[#011A57] text-[#D6C6AC] font-bold flex items-center justify-center shrink-0 text-xs">A</div>
+                                        <div>
+                                            <span class="font-bold text-[#011A57] uppercase text-[10px] block mb-0.5">Audience</span>
+                                            <p class="text-slate-900 font-bold" x-text="graspsTask.audience"></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-lg bg-[#F0EAE2] border border-slate-300 flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded bg-[#219360] text-white font-bold flex items-center justify-center shrink-0 text-xs">S</div>
+                                    <div>
+                                        <span class="font-bold text-[#011A57] uppercase text-[10px] block mb-0.5">Situation</span>
+                                        <p class="text-slate-900" x-text="graspsTask.situation"></p>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-lg bg-[#F0EAE2] border border-slate-300 flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded bg-[#AE8B5A] text-white font-bold flex items-center justify-center shrink-0 text-xs">P</div>
+                                    <div>
+                                        <span class="font-bold text-[#011A57] uppercase text-[10px] block mb-0.5">Product / Performance</span>
+                                        <p class="text-slate-900 font-bold" x-text="`${graspsTask.product} (${graspsProductType})`"></p>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 rounded-lg bg-[#F0EAE2] border border-slate-300 flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded bg-[#011A57] text-[#D6C6AC] font-bold flex items-center justify-center shrink-0 text-xs">S</div>
+                                    <div class="w-full">
+                                        <span class="font-bold text-[#011A57] uppercase text-[10px] block mb-1">Standards & Criteria for Success</span>
+                                        <ul class="space-y-1 list-disc list-inside text-slate-800 font-medium text-[11px] mb-2">
+                                            <template x-for="(kText, i) in graspsTask.selectedKPIs" :key="i">
+                                                <li x-text="kText"></li>
+                                            </template>
+                                        </ul>
+                                        <div class="pt-2 border-t border-slate-300 text-slate-700 whitespace-pre-line" x-text="graspsTask.standards"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-[#F0EAE2] border-t border-slate-200 flex items-center justify-between text-xs">
+                            <button @click="saveGraspsTaskToBasket()" class="px-3.5 py-2 bg-[#AE8B5A] hover:bg-[#8e6e41] text-white font-bold rounded-lg transition shadow-xs flex items-center gap-1.5 font-serif">
+                                <i class="fa-solid fa-bookmark"></i> Save Task to Basket
+                            </button>
+                            <button @click="window.print()" class="px-4 py-2 bg-[#219360] hover:bg-[#1b7a4f] text-white font-bold rounded-lg transition shadow flex items-center gap-2 font-serif">
+                                Print Task Sheet <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 7: PHASE COMPARISON TOOL -->
+        <div x-show="activeTab === 'compare'" x-transition class="space-y-5">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-[#011A57] font-serif">Key Stage Phase Comparison Tool</h2>
+                    <p class="text-xs text-slate-500">Side-by-side comparative analysis across Key Stage 1, Lower Key Stage 2, and Upper Key Stage 2.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-[#011A57] text-white text-[11px] uppercase font-bold">
+                            <th class="p-3.5 w-52 border-r border-white/10">Subject / Goal</th>
+                            <th class="p-3.5 border-r border-white/10 bg-[#011A57]">KS1 Phase (Y1 - Y2)</th>
+                            <th class="p-3.5 border-r border-white/10 bg-[#011A57]">LKS2 Phase (Y3 - Y4)</th>
+                            <th class="p-3.5 bg-[#011A57]">UKS2 Phase (Y5 - Y6)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <template x-for="tg in transferGoals" :key="tg.id">
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 bg-[#F0EAE2] font-bold text-[#011A57] border-r border-slate-200 align-top">
+                                    <div x-text="tg.subject.toUpperCase() + ' ' + tg.code"></div>
+                                    <div class="text-[10px] text-slate-600 font-normal" x-text="tg.title"></div>
+                                </td>
+                                
+                                <td class="p-3 border-r border-slate-200 align-top bg-white">
+                                    <div class="font-bold text-slate-900" x-text="tg.years[1]?.kpi"></div>
+                                    <div class="text-[10px] text-slate-500 mt-1" x-text="'Y2: ' + (tg.years[2]?.kpi || 'N/A')"></div>
+                                </td>
+
+                                <td class="p-3 border-r border-slate-200 align-top bg-white">
+                                    <div class="font-bold text-slate-900" x-text="tg.years[3]?.kpi"></div>
+                                    <div class="text-[10px] text-slate-500 mt-1" x-text="'Y4: ' + (tg.years[4]?.kpi || 'N/A')"></div>
+                                </td>
+
+                                <td class="p-3 align-top bg-white">
+                                    <div class="font-bold text-slate-900" x-text="tg.years[5]?.kpi"></div>
+                                    <div class="text-[10px] text-slate-500 mt-1" x-text="'Y6: ' + (tg.years[6]?.kpi || 'N/A')"></div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <div x-show="showBasket" class="fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-xs flex justify-end" x-transition>
+        <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between">
+            <div>
+                <div class="p-4 bg-[#011A57] text-white flex items-center justify-between border-b-2 border-[#219360]">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-basket-shopping text-[#D6C6AC]"></i>
+                        <h3 class="font-bold text-sm font-serif text-[#D6C6AC]">Unit Planning Basket</h3>
+                    </div>
+                    <button @click="showBasket = false" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <div class="p-4 space-y-3 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
+                    <template x-if="savedKPIs.length === 0">
+                        <div class="text-center py-12 text-slate-400 text-xs">
+                            <i class="fa-solid fa-basket-shopping text-3xl mb-2 text-slate-300"></i>
+                            <p>Your basket is currently empty.</p>
+                        </div>
+                    </template>
+
+                    <template x-for="(item, index) in savedKPIs" :key="index">
+                        <div class="p-3 bg-[#F0EAE2] rounded-lg border border-slate-300 relative text-xs space-y-1">
+                            <button @click="savedKPIs.splice(index, 1)" class="absolute top-2 right-2 text-slate-400 hover:text-rose-600">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                            <span class="text-[10px] font-bold text-[#011A57] uppercase" x-text="`[Year ${item.year}] ${item.subject} • ${item.tgCode}`"></span>
+                            <p class="text-slate-900 font-semibold pr-4 text-[11px]" x-text="item.kpiText"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <div class="p-4 bg-[#F0EAE2] border-t border-slate-200 flex items-center justify-between">
+                <button @click="savedKPIs = []" class="text-xs text-rose-600 hover:underline font-bold">Clear Basket</button>
+                <button @click="window.print()" class="px-4 py-2 bg-[#219360] text-white text-xs font-bold rounded-lg hover:bg-[#1b7a4f] transition font-serif flex items-center gap-1.5">
+                    Export Summary <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function curriculumApp() {
+            return {
+                activeTab: 'termly',
+                selectedSubject: 'all',
+                selectedPhase: 'ks1',
+                selectedYear: 1,
+                selectedGoalId: 'geo_1',
+                selectedTermFilter: 'all',
+                termDisplayMode: 'single',
+                searchQuery: '',
+                showBasket: false,
+                savedKPIs: [],
+
+                // Scaffolder State
+                scaffoldSubject: 'geography',
+                scaffoldYear: 1,
+
+                // GRASPS State
+                graspsSubject: 'geography',
+                graspsYear: 1,
+                graspsRolesList: [
+                    'Tour Guide / Travel Agent',
+                    'Packaging / Mechanical Engineer',
+                    'Museum Curator / Historian',
+                    'App / Web Developer',
+                    'Environmental Scientist / Consultant',
+                    'Urban / Town Planner',
+                    'Documentary Filmmaker',
+                    'Investigative Journalist'
+                ],
+                graspsAudienceList: [
+                    'Group of Foreign Visitors / Tourists',
+                    'Company Executives / Board Members',
+                    'Local City Council Committee',
+                    'Primary School Students & Parents',
+                    'Non-Governmental Organization (NGO)',
+                    'Museum Visitors & Historians'
+                ],
+                graspsProductType: 'Written',
+                graspsProductOptions: ['Written Itinerary & Proposal', 'Field Guide / Brochure', 'Analytical Report'],
+                availableGraspsKPIs: [],
+
+                graspsTask: {
+                    title: 'Regional Tourism & Geographic Itinerary Challenge',
+                    selectedKPIs: [],
+                    goal: 'Your goal is to help a group of foreign visitors understand key historical, geographic, and economic features.',
+                    role: 'Tour Guide / Travel Agent',
+                    audience: 'Group of Foreign Visitors / Tourists',
+                    situation: 'You have been asked to develop a 4-day regional tour plan including a budget.',
+                    product: 'Written Itinerary & Proposal',
+                    standards: 'Your proposed plan will be judged by accuracy, geographic details, and route map clarity.'
+                },
+
+                subjects: [
+                    { id: 'all', name: 'All Subjects', icon: 'fa-solid fa-cubes' },
+                    { id: 'geography', name: 'Geography', icon: 'fa-solid fa-earth-americas' },
+                    { id: 'history', name: 'History', icon: 'fa-solid fa-landmark' },
+                    { id: 'design_tech', name: 'Design Tech', icon: 'fa-solid fa-compass-drafting' },
+                    { id: 'digital_learning', name: 'Digital Learning', icon: 'fa-solid fa-laptop-code' }
+                ],
+
+                termlyData: {
+                    1: [
+                        {
+                            term: '1.1', termName: 'Term 1.1 (Autumn 1)', termId: 'y1_t11', duration: '7 Weeks',
+                            title: 'Our School & Local Weather Observations',
+                            bigQuestion: 'How does local weather change over time and how do we record it?',
+                            subjects: {
+                                geography: { tgCode: 'TG1', topic: 'Weather Measurement & Simple Maps', kpi: 'To measure elements of local weather such as rainfall & temperature.' },
+                                history: { tgCode: 'TG1', topic: 'School & Personal Timelines', kpi: 'To create timelines with pictures, words or phrases.' },
+                                design_tech: { tgCode: 'TG2', topic: '2D Sketching & Weather Shields', kpi: 'To create drawings to design a simple protective product.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Digital Photography & Markup', kpi: 'Take photos using digital devices and augment using markup tools.' }
+                            }
+                        },
+                        {
+                            term: '1.2', termName: 'Term 1.2 (Autumn 2)', termId: 'y1_t12', duration: '7 Weeks',
+                            title: 'Toys & Everyday Materials Through History',
+                            bigQuestion: 'How have toys and household objects changed since our grandparents were young?',
+                            subjects: {
+                                geography: { tgCode: 'TG2', topic: 'Physical & Human Environment Features', kpi: 'To identify physical and human features of our local environment.' },
+                                history: { tgCode: 'TG2', topic: 'Comparing Old & Modern Toys', kpi: 'To describe how things have changed or stayed the same over generations.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Evaluating Materials & Products', kpi: 'To explore and evaluate a range of simple existing products.' },
+                                digital_learning: { tgCode: 'TG1', topic: 'Introductory Floor Robotics', kpi: 'Create simple command sequences to direct floor robots.' }
+                            }
+                        },
+                        {
+                            term: '2', termName: 'Term 2 (Spring)', termId: 'y1_t2', duration: '11 Weeks',
+                            title: 'Shelters, Structures & Aerial Mapping',
+                            bigQuestion: 'How do we design strong frame structures and navigate our surroundings?',
+                            subjects: {
+                                geography: { tgCode: 'TG3', topic: 'Simple Aerial Views & Maps', kpi: 'To create simple aerial maps (e.g. classroom, bedroom, island).' },
+                                history: { tgCode: 'TG3', topic: 'Posing Questions About Historical Events', kpi: 'To pose questions such as: What happened and why?' },
+                                design_tech: { tgCode: 'TG3', topic: 'Measuring & Marking Structures', kpi: 'To measure out and mark out materials needed for a structure.' },
+                                digital_learning: { tgCode: 'TG3', topic: 'Device Safety & Turn-Taking', kpi: 'Follow routines for safe device use and resource sharing.' }
+                            }
+                        },
+                        {
+                            term: '3', termName: 'Term 3 (Summer)', termId: 'y1_t3', duration: '10 Weeks',
+                            title: 'Local Environmental Action & Digital Expression',
+                            bigQuestion: 'How can we care for our local community environment and express our ideas digitally?',
+                            subjects: {
+                                geography: { tgCode: 'TG4', topic: 'Identifying Local Community Problems', kpi: 'To identify environmental problems through examples (litter, waste).' },
+                                history: { tgCode: 'TG4', topic: 'Learning From Visual Artefacts', kpi: 'To learn from a range of artefacts, photographs, and pictures.' },
+                                design_tech: { tgCode: 'TG2', topic: 'User-Focused Simple Products', kpi: 'To plan through drawing to solve user problems.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Visual Digital Drawing & Art', kpi: 'Share ideas visually through digital drawings and digital tools.' }
+                            }
+                        }
+                    ],
+                    2: [
+                        {
+                            term: '1.1', termName: 'Term 1.1 (Autumn 1)', termId: 'y2_t11', duration: '7 Weeks',
+                            title: 'Contrasting World Habitats & Climate Comparisons',
+                            bigQuestion: 'How do weather patterns and physical features differ across continents?',
+                            subjects: {
+                                geography: { tgCode: 'TG2', topic: 'Comparing Rainforests & Deserts', kpi: 'To compare two contrasting habitats and locate world continents.' },
+                                history: { tgCode: 'TG1', topic: 'Chronological Timelines with Reasons', kpi: 'To label timelines and give reasons for chronological order.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Design Criteria Checklists', kpi: 'To evaluate work using explicit checklist criteria.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Photo Editing & Dictation Tools', kpi: 'Use dictation tools and apply basic edits to photos.' }
+                            }
+                        },
+                        {
+                            term: '1.2', termName: 'Term 1.2 (Autumn 2)', termId: 'y2_t12', duration: '7 Weeks',
+                            title: 'Great Fire of London & Technology Timeline',
+                            bigQuestion: 'How did building materials and communications evolve over time?',
+                            subjects: {
+                                geography: { tgCode: 'TG3', topic: 'World Continents & Oceans', kpi: 'To name and locate the world continents and oceans.' },
+                                history: { tgCode: 'TG2', topic: 'Historical Technology vs Modern Day', kpi: 'To compare similarities/differences of technology across time.' },
+                                design_tech: { tgCode: 'TG3', topic: 'Woodworking & Axles', kpi: 'To use equipment to cut wood safely and construct axles.' },
+                                digital_learning: { tgCode: 'TG1', topic: 'Debugging & Sequence Fixes', kpi: 'Create and adjust sequences, identifying and correcting small errors.' }
+                            }
+                        },
+                        {
+                            term: '2', termName: 'Term 2 (Spring)', termId: 'y2_t2', duration: '11 Weeks',
+                            title: 'Sustainable Initiatives & Moving Vehicles',
+                            bigQuestion: 'How can engineering and recycling help us build cleaner transport?',
+                            subjects: {
+                                geography: { tgCode: 'TG4', topic: 'Describing Sustainable Initiatives', kpi: 'To describe sustainable initiatives and their positive impacts.' },
+                                history: { tgCode: 'TG3', topic: 'Impact of Significant Figures', kpi: 'Explain how significant figures/events have positive or negative impacts.' },
+                                design_tech: { tgCode: 'TG2', topic: 'Following Design Brief Criteria', kpi: 'To follow a design criteria for a moving product.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Labelled Digital Presentations', kpi: 'Create digital drawings with text, labels, and online info.' }
+                            }
+                        },
+                        {
+                            term: '3', termName: 'Term 3 (Summer)', termId: 'y2_t3', duration: '10 Weeks',
+                            title: 'Comparative Data Enquiry & Digital Publishing',
+                            bigQuestion: 'How do we ask effective questions to compare data across locations?',
+                            subjects: {
+                                geography: { tgCode: 'TG1', topic: 'Comparing Weather Data', kpi: 'To ask and answer questions about comparing geographical data.' },
+                                history: { tgCode: 'TG4', topic: 'Referring to Specific Sources', kpi: 'To explain answers by referring to specific objects or books.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Reflecting on Product Fitness', kpi: 'To evaluate finished work against initial problem criteria.' },
+                                digital_learning: { tgCode: 'TG3', topic: 'Shared Device Routines', kpi: 'Cooperate with peers when sharing digital devices.' }
+                            }
+                        }
+                    ],
+                    3: [
+                        {
+                            term: '1.1', termName: 'Term 1.1 (Autumn 1)', termId: 'y3_t11', duration: '7 Weeks',
+                            title: 'Rivers, Mountains & Topographical Map Keys',
+                            bigQuestion: 'How do physical processes shape landforms and how do map keys help us navigate?',
+                            subjects: {
+                                geography: { tgCode: 'TG3', topic: 'Map Keys & Topography', kpi: 'To locate topographical features (rivers, hills) using a map key.' },
+                                history: { tgCode: 'TG1', topic: 'Ancient Civilisations Timelines', kpi: 'To represent change over time with timeline evidence.' },
+                                design_tech: { tgCode: 'TG3', topic: 'Digital 3D CAD Modelling', kpi: 'To use digital design applications (CAD) to support mechanical designs.' },
+                                digital_learning: { tgCode: 'TG1', topic: 'Efficient Programming with Loops', kpi: 'Create programs using loops to make code sequences efficient.' }
+                            }
+                        },
+                        {
+                            term: '1.2', termName: 'Term 1.2 (Autumn 2)', termId: 'y3_t12', duration: '7 Weeks',
+                            title: 'Ancient Civilisations & Societal Structures',
+                            bigQuestion: 'How did early civilisations organize society compared to our lives today?',
+                            subjects: {
+                                geography: { tgCode: 'TG1', topic: 'Accurately Presenting Data', kpi: 'To accurately present geographical data using charts & maps.' },
+                                history: { tgCode: 'TG2', topic: 'Ancient Society vs Modern Life', kpi: 'To compare aspects of an ancient civilisation with our lives today.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Analyzing Existing Products', kpi: 'To systematically investigate and analyze existing products.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Virtual & Augmented Reality', kpi: 'Experience VR/AR to explore places and search effectively.' }
+                            }
+                        },
+                        {
+                            term: '2', termName: 'Term 2 (Spring)', termId: 'y3_t2', duration: '11 Weeks',
+                            title: 'Physical Systems Interactions & Alternative Designs',
+                            bigQuestion: 'How do changes in physical systems affect plant, animal, and human habitats?',
+                            subjects: {
+                                geography: { tgCode: 'TG2', topic: 'Physical & Human Systems', kpi: 'To ask & answer questions about interactions between physical/human systems.' },
+                                history: { tgCode: 'TG3', topic: 'Causes of Change in Civilisations', kpi: 'Consider how significant events led to change within civilisations.' },
+                                design_tech: { tgCode: 'TG2', topic: 'Generating Alternative Concepts', kpi: 'To generate and design multiple alternative design ideas.' },
+                                digital_learning: { tgCode: 'TG3', topic: 'Online Privacy & Screen Balance', kpi: 'Understand personal information privacy and screen balance.' }
+                            }
+                        },
+                        {
+                            term: '3', termName: 'Term 3 (Summer)', termId: 'y3_t3', duration: '10 Weeks',
+                            title: 'Comparative Sustainability & Video Editing',
+                            bigQuestion: 'Why are certain resource choices more sustainable than others?',
+                            subjects: {
+                                geography: { tgCode: 'TG4', topic: 'Comparing Sustainability Choices', kpi: 'To compare why Option X is more sustainable than Option Y.' },
+                                history: { tgCode: 'TG4', topic: 'Multiple Evidence Sources', kpi: 'To use more than one source of evidence for historical enquiry.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Refining Functional Designs', kpi: 'To evaluate finished work against original user briefs.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Recording & Style Video Clips', kpi: 'Record and change the style of video clips for storytelling.' }
+                            }
+                        }
+                    ],
+                    4: [
+                        {
+                            term: '1.1', termName: 'Term 1.1 (Autumn 1)', termId: 'y4_t11', duration: '7 Weeks',
+                            title: 'Data Stories & Regional Change Over Time',
+                            bigQuestion: 'What story does paired geographical data tell about our changing planet?',
+                            subjects: {
+                                geography: { tgCode: 'TG1', topic: 'Describing Paired Data Stories', kpi: 'To describe the data story using paired comparison or trend data.' },
+                                history: { tgCode: 'TG1', topic: 'Global Civilizational Timelines', kpi: 'Chronologically order historical events & people from diverse societies.' },
+                                design_tech: { tgCode: 'TG2', topic: 'Designing Problem Criteria', kpi: 'To design explicit criteria for a product to solve a specific problem.' },
+                                digital_learning: { tgCode: 'TG1', topic: 'Conditional Decision Logic', kpi: 'Use conditionals (if...then...) to create programs that make decisions.' }
+                            }
+                        },
+                        {
+                            term: '1.2', termName: 'Term 1.2 (Autumn 2)', termId: 'y4_t12', duration: '7 Weeks',
+                            title: 'Trade Routes, Diversity & Cultural Connections',
+                            bigQuestion: 'How did historic trade routes foster cultural exchange and diversity?',
+                            subjects: {
+                                geography: { tgCode: 'TG2', topic: 'Regional Changes Over Time', kpi: 'To explain how regions and human/physical features change over time.' },
+                                history: { tgCode: 'TG2', topic: 'Social & Cultural Diversity Comparisons', kpi: 'To compare key similarities/differences across historical periods.' },
+                                design_tech: { tgCode: 'TG3', topic: 'Fasteners & Joinery Methods', kpi: 'To join materials using permanent and temporary fixings.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Multimedia AI & Presentations', kpi: 'Design presentations combining video, audio, and explore real-world AI.' }
+                            }
+                        },
+                        {
+                            term: '2', termName: 'Term 2 (Spring)', termId: 'y4_t2', duration: '11 Weeks',
+                            title: 'Map Creation, Key Symbols & Mechanical Prototypes',
+                            bigQuestion: 'How do cartographers represent space and how do engineers refine solutions?',
+                            subjects: {
+                                geography: { tgCode: 'TG3', topic: 'Creating Maps with Keys', kpi: 'To create maps of locations identifying features using key symbols.' },
+                                history: { tgCode: 'TG3', topic: 'Representing Timeline Evidence', kpi: 'To explain change over time using timeline evidence.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Iterative Design Refinements', kpi: 'To reflect and suggest targeted design improvements.' },
+                                digital_learning: { tgCode: 'TG3', topic: 'Digital Footprint Awareness', kpi: 'Recognise that online actions leave permanent digital footprints.' }
+                            }
+                        },
+                        {
+                            term: '3', termName: 'Term 3 (Summer)', termId: 'y4_t3', duration: '10 Weeks',
+                            title: 'Sustainable Futures & Multiple Interpretations',
+                            bigQuestion: 'How can we explain ways to make our future sustainable?',
+                            subjects: {
+                                geography: { tgCode: 'TG4', topic: 'Future Sustainability Pathways', kpi: 'To be able to explain ways to make our future sustainable.' },
+                                history: { tgCode: 'TG4', topic: 'Historical Interpretations Comparison', kpi: 'To compare different historical interpretations of the same event.' },
+                                design_tech: { tgCode: 'TG2', topic: 'Problem-Solving Criteria', kpi: 'To design criteria for a product to solve a problem.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Audio/Video Editing & Typing', kpi: 'Plan, record, edit video clips and develop typing accuracy.' }
+                            }
+                        }
+                    ],
+                    5: [
+                        {
+                            term: '1.1', termName: 'Term 1.1 (Autumn 1)', termId: 'y5_t11', duration: '7 Weeks',
+                            title: 'Global Statistical Fieldwork & Deep Historical Eras',
+                            bigQuestion: 'How do geographers collect reliable statistical evidence to evaluate change?',
+                            subjects: {
+                                geography: { tgCode: 'TG1', topic: 'Statistical Fieldwork Analysis', kpi: 'To collect and analyse statistics and other information (online and fieldwork).' },
+                                history: { tgCode: 'TG1', topic: 'Significance on Timelines', kpi: 'To examine the significance of events that might be included on a timeline.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Lifecycle & Ecological Impact', kpi: 'To evaluate ideas against criteria considering views of others.' },
+                                digital_learning: { tgCode: 'TG1', topic: 'Dynamic Variables in Code', kpi: 'Use variables to store, change, and use information in programs.' }
+                            }
+                        },
+                        {
+                            term: '1.2', termName: 'Term 1.2 (Autumn 2)', termId: 'y5_t12', duration: '7 Weeks',
+                            title: 'Settlements, Land Use & Social Diversity Across Eras',
+                            bigQuestion: 'How do physical features govern economic trade and land use?',
+                            subjects: {
+                                geography: { tgCode: 'TG2', topic: 'Land Use & Economic Trade Links', kpi: 'To analyse how physical features of a location affect human activity.' },
+                                history: { tgCode: 'TG2', topic: 'Explaining Historical Diversity', kpi: 'To explain similarities/differences of periods (social, ethical, cultural).' },
+                                design_tech: { tgCode: 'TG2', topic: 'Innovative Product Criteria', kpi: 'Research and develop design criteria to inform functional products.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Generative AI & Accessible Design', kpi: 'Use design elements for accessibility and create images with AI.' }
+                            }
+                        },
+                        {
+                            term: '2', termName: 'Term 2 (Spring)', termId: 'y5_t2', duration: '11 Weeks',
+                            title: 'Biomes, Climate Zones & Shaping World Societies',
+                            bigQuestion: 'How have significant historical ideas shaped modern nations?',
+                            subjects: {
+                                geography: { tgCode: 'TG3', topic: 'Physical Biomes & Choropleth Maps', kpi: 'To analyse key aspects of physical geography (biomes, volcanoes, water cycle).' },
+                                history: { tgCode: 'TG3', topic: 'Historical Ideas Shaping Societies', kpi: 'Consider how significant ideas in history have shaped countries today.' },
+                                design_tech: { tgCode: 'TG3', topic: '3D Structural Assembly', kpi: 'To assemble and construct a 3D structure using a range of materials.' },
+                                digital_learning: { tgCode: 'TG3', topic: 'Media Bias & Safe AI Ethics', kpi: 'Distinguish facts, opinions & ads; discuss safe and ethical AI use.' }
+                            }
+                        },
+                        {
+                            term: '3', termName: 'Term 3 (Summer)', termId: 'y5_t3', duration: '10 Weeks',
+                            title: 'SDGs, Ecological Challenges & Source In-Depth Analysis',
+                            bigQuestion: 'How do the UN Sustainable Development Goals help address global challenges?',
+                            subjects: {
+                                geography: { tgCode: 'TG4', topic: 'UN Sustainable Development Goals (SDGs)', kpi: 'To research ecological challenges we face (Sustainable Development Goals).' },
+                                history: { tgCode: 'TG4', topic: 'Deep Source Analysis', kpi: 'Examine the nature of historical evidence and interpretations in depth.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Product Life Cycles', kpi: 'Evaluate ideas and consider environmental impacts.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Video Timelines & Touch Typing', kpi: 'Trim, split, arrange video clips and increase touch-typing speed.' }
+                            }
+                        }
+                    ],
+                    6: [
+                        {
+                            term: '1.1', termName: 'Term 1.1 (Autumn 1)', termId: 'y6_t11', duration: '7 Weeks',
+                            title: 'Data Validity, Statistical Inferences & Chronological Enquiry',
+                            bigQuestion: 'How do we justify conclusions about locations and evaluate historical significance?',
+                            subjects: {
+                                geography: { tgCode: 'TG1', topic: 'Data Validity & Statistical Conclusions', kpi: 'To draw conclusions about locations based on statistics and data validity.' },
+                                history: { tgCode: 'TG1', topic: 'Justifying Chronological Enquiries', kpi: 'Identify and justify choice of significant events in chronological enquiry.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Advanced Testing & Iteration', kpi: 'To reflect and justify improvements to the design.' },
+                                digital_learning: { tgCode: 'TG1', topic: 'Decomposition & Abstraction', kpi: 'Use abstraction and decomposition to break complex problems into parts.' }
+                            }
+                        },
+                        {
+                            term: '1.2', termName: 'Term 1.2 (Autumn 2)', termId: 'y6_t12', duration: '7 Weeks',
+                            title: 'Settlement Factors, Global History & CAD Engineering',
+                            bigQuestion: 'How do physical settlement factors constrain or enable human development?',
+                            subjects: {
+                                geography: { tgCode: 'TG2', topic: 'Physical Settlement Effects', kpi: 'To evaluate how physical features of a settlement affect human activity.' },
+                                history: { tgCode: 'TG2', topic: 'Local, Asian & World History Connections', kpi: 'Research key similarities and differences across local, Asian and world history.' },
+                                design_tech: { tgCode: 'TG2', topic: 'Complex CAD & Exploded Diagrams', kpi: 'Communicate ideas through cross-sections, exploded diagrams, and CAD.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'Website Publishing & ML Models', kpi: 'Design and publish a website; experiment with machine learning tools.' }
+                            }
+                        },
+                        {
+                            term: '2', termName: 'Term 2 (Spring)', termId: 'y6_t2', duration: '11 Weeks',
+                            title: 'Geographical Resource Synthesis & Evidence Rigour',
+                            bigQuestion: 'How do multi-perspective resources allow us to evaluate complex environments?',
+                            subjects: {
+                                geography: { tgCode: 'TG3', topic: 'GIS, Satellite & Multi-Resource Analysis', kpi: 'To evaluate characteristic features using a range of geographical resources.' },
+                                history: { tgCode: 'TG3', topic: 'Evidence-Backed Change Over Time', kpi: 'Research & represent significance of change using evidence on timelines.' },
+                                design_tech: { tgCode: 'TG3', topic: 'CAD Engineering Pros & Cons', kpi: 'To use CAD effectively to enhance design and evaluate advantages.' },
+                                digital_learning: { tgCode: 'TG3', topic: 'Society AI Ethics & Source Credibility', kpi: 'Discuss benefits/risks of AI; evaluate credibility of online sources.' }
+                            }
+                        },
+                        {
+                            term: '3', termName: 'Term 3 (Summer)', termId: 'y6_t3', duration: '10 Weeks',
+                            title: 'Three Pillars of Sustainability & Source Reliability',
+                            bigQuestion: 'What makes a society truly sustainable across economic, environmental and social pillars?',
+                            subjects: {
+                                geography: { tgCode: 'TG4', topic: 'Three Pillars of Sustainability (Econ/Env/Social)', kpi: 'To evaluate what makes a sustainable society truly sustainable.' },
+                                history: { tgCode: 'TG4', topic: 'Critical Evaluation of Source Reliability', kpi: 'To critically evaluate credibility and reliability of primary/secondary sources.' },
+                                design_tech: { tgCode: 'TG1', topic: 'Performance Justification', kpi: 'Reflect and justify improvements based on user testing.' },
+                                digital_learning: { tgCode: 'TG2', topic: 'UDL Accessibility & 3D Design', kpi: 'Apply UDL accessibility principles when publishing content and 3D models.' }
+                            }
+                        }
+                    ]
+                },
+
+                // Complete 14 Transfer Goals Dataset
+                transferGoals: [
+                    // GEOGRAPHY (TG1 - TG4)
+                    {
+                        id: 'geo_1', subject: 'geography', code: 'TG1',
+                        title: 'Students can critically evaluate data to identify and explain patterns and processes at a range of scales, and use these to make informed decisions',
+                        years: {
+                            1: { kpi: 'To measure elements of the local weather such as rainfall and temperature and explain local weather patterns', knowledge: 'Identify basic types of geographical representations (simple maps, photos)', skills: 'Analyse and identify simple patterns in data (like weather pattern)', understanding: 'Recognise similarities and differences in how maps and images show us information' },
+                            2: { kpi: 'To ask and answer questions about comparing data', knowledge: 'Explain simple comparison terms ("more than", "fewer than") and basic data collection', skills: 'Compare two sets of simple data (e.g. weather in two locations) and ask questions', understanding: 'Record how data can be used to compare places and environments' },
+                            3: { kpi: 'To be able accurately present data', knowledge: 'Describe types of geographical data (maps, charts)', skills: 'Interpret maps and simple graphs to identify patterns', understanding: 'Summarise how different scales show different levels of detail' },
+                            4: { kpi: 'To be able to describe the data story (using pair data - comparison or trend)', knowledge: 'Discuss concepts of Trend (change over time) and comparison', skills: 'Interpret pair data from graphs/tables to describe trends', understanding: 'Imagine the data story about what is happening in a place' },
+                            5: { kpi: 'To collect and analyse statistics and other information (online and fieldwork)', knowledge: 'Examine advanced types of geographical data and statistical representation', skills: 'Analyse complex data to identify significant patterns and processes', understanding: 'Predict how geographical data can be used to make decisions' },
+                            6: { kpi: 'To draw conclusions about locations based on statistics and information (validity of data)', knowledge: 'Give reasons for data reliability and bias (sources, sample size)', skills: 'Find evidence by cross-referencing statistical data with qualitative info', understanding: 'Justify why conclusions must be supported by valid, reliable data' }
+                        }
+                    },
+                    {
+                        id: 'geo_2', subject: 'geography', code: 'TG2',
+                        title: 'Students can critically evaluate the interrelationships between physical, human, and cultural systems',
+                        years: {
+                            1: { kpi: 'To identify some physical and human features of an environment', knowledge: 'Describe basic interactions between people and environments (recycling, pollution)', skills: 'Observe and communicate simple interactions in surroundings', understanding: 'Record similarities and differences in how people and environment affect each other' },
+                            2: { kpi: 'To compare two contrasting habitats', knowledge: 'Recognise basic features of different habitats (polar vs desert, forest vs urban)', skills: 'Compare similarities and differences between two habitats', understanding: 'Summarise how distinct habitats support different plants and animals' },
+                            3: { kpi: 'To ask and answer geographical questions about physical and human characteristics of a location', knowledge: 'Consider concepts of physical, human, and cultural systems and interactions', skills: 'Analyse simple scenarios of system interactions (e.g., deforestation impact)', understanding: 'Predict how changes in one system can affect others' },
+                            4: { kpi: 'To explain how geographical regions and their identifying human and physical characteristics change over time', knowledge: 'Identify factors causing regional change (seasonal changes, urban growth)', skills: 'Describe and communicate how a region has evolved based on evidence/maps', understanding: 'Evaluate the dynamic nature of geographical regions changing over time' },
+                            5: { kpi: 'To analyse how physical features of a location affect human activity (settlement, land use, trade links, resources)', knowledge: 'Examine detailed study of systems and their complex interrelations', skills: 'Analyse and predict outcomes from interactions between different systems', understanding: 'Reflect on the balance needed between systems for sustainable development' },
+                            6: { kpi: 'To evaluate how physical features of a settlement affect human activity', knowledge: 'Identify physical geography factors (topography, climate, water access)', skills: 'Analyse how physical geography creates opportunities or constraints', understanding: 'Justify how human society is deeply influenced by physical environment' }
+                        }
+                    },
+                    {
+                        id: 'geo_3', subject: 'geography', code: 'TG3',
+                        title: 'Students can appreciate and explain the unique characteristics of places, their dynamic nature, and the different opportunities and challenges they present',
+                        years: {
+                            1: { kpi: 'To be able to create a simple aerial map (e.g. classroom, bedroom, island)', knowledge: 'Recognise features of different places (mountains, rivers)', skills: 'Describe and communicate features of familiar and unfamiliar places', understanding: 'Summarise how different places can look very different' },
+                            2: { kpi: 'To name and locate the world continents and oceans', knowledge: 'Name and locate seven continents and five oceans', skills: 'Use a globe or world map to identify and name continents and oceans', understanding: 'Record similarities and differences in how world is made of land and oceans' },
+                            3: { kpi: 'To locate geographical regions and identifying characteristics including hills, mountains, cities, rivers (using map key)', knowledge: 'Identify map symbols and purpose of a map key (legend)', skills: 'Draw and construct a simple map including a key', understanding: 'Justify why symbols are used on maps to represent real-world objects' },
+                            4: { kpi: 'To create maps of locations identifying some features using a key', knowledge: 'Describe detailed characteristics of places including cultural aspects', skills: 'Compare and contrast characteristics of two places', understanding: 'Predict how places change over time and how this affects people' },
+                            5: { kpi: 'To analyse key aspects of physical geography (climate zones, biomes, rivers, mountains, volcanoes, water cycle)', knowledge: 'Examine in-depth characteristics and dynamics of various places globally', skills: 'Analyse how characteristics of a place present opportunities and challenges', understanding: 'Record similarities and differences in how places are interconnected' },
+                            6: { kpi: 'To evaluate characteristic features of a location using a range of geographical resources', knowledge: 'Explain a range of resources (GIS, atlases, satellite imagery, field studies)', skills: 'Research and interpret info from multiple sources to evaluate place features', understanding: 'Reflect on the multifaceted nature of a place and value of multi-perspective approach' }
+                        }
+                    },
+                    {
+                        id: 'geo_4', subject: 'geography', code: 'TG4',
+                        title: 'Students participate as global citizens who take responsibility for living sustainable lives and have a positive impact on their environment',
+                        years: {
+                            1: { kpi: 'To identify a problem through an example (food waste, energy waste in local community)', knowledge: 'Identify simple environmental concepts (littering, water conservation)', skills: 'Demonstrate actions in classroom recycling or garden projects', understanding: 'Justify the importance of taking care of the environment' },
+                            2: { kpi: 'To describe sustainable initiative (what are positive about this)', knowledge: 'Describe how small actions have positive impact on environment', skills: 'Identify and communicate a simple local sustainable initiative', understanding: 'Record similarities and differences in how individual choices affect the future' },
+                            3: { kpi: 'To compare why X is more sustainable than Y', knowledge: 'Examine broader environmental issues (energy sources, global warming)', skills: 'Conduct and participate in school-wide sustainability projects', understanding: 'Reflect on role in larger environmental systems and impact of actions' },
+                            4: { kpi: 'To be able to explain ways to make our future sustainable', knowledge: 'Identify basic concepts of sustainability (reducing waste, renewable energy)', skills: 'Plan and propose simple actions that lead to a sustainable future', understanding: 'Predict how choices today affect environment of the future' },
+                            5: { kpi: 'To research ecological challenges we currently face (Sustainable Development Goals = SDGs)', knowledge: 'Examine complex global environmental issues and sustainability practices', skills: 'Research and implement personal and community projects for sustainability', understanding: 'Reflect on necessity of sustainable practices for future environmental health' },
+                            6: { kpi: 'To evaluate what makes a sustainable society truly sustainable (Economic, Environment, Social)', knowledge: 'Give reasons for three pillars of sustainability: economic, environmental, social', skills: 'Analyse and evaluate sustainability of a society against three pillars', understanding: 'Justify balance between economic progress, environmental protection, and social well-being' }
+                        }
+                    },
+
+                    // HISTORY (TG1 - TG4)
+                    {
+                        id: 'his_1', subject: 'history', code: 'TG1',
+                        title: 'Historical knowledge and understanding',
+                        years: {
+                            1: { kpi: 'To create timelines with pictures, words or phrases', knowledge: 'Define basic historical facts and terminology (past, present, old, new)', skills: 'Communicate questions about past and recognise historical sources', understanding: 'Record similarities and differences in how history tells us about past' },
+                            2: { kpi: 'To label timelines with pictures, words or phrases and give reasons for their order', knowledge: 'Identify chronological order and how to sequence events (before, after, next)', skills: 'Construct timelines and communicate reasoning for sequence of events', understanding: 'Summarise how history follows chronological order and how events connect' },
+                            3: { kpi: 'To represent the concept of change over time, along with evidence, on a timeline', knowledge: 'Identify more detailed historical facts and terminology', skills: 'Independently find info about historical events and use terms correctly', understanding: 'Justify importance of linking new knowledge to form coherent narratives' },
+                            4: { kpi: 'To chronologically order historical events & people from past & present societies', knowledge: 'Describe timelines, eras, and sequencing of significant historical events', skills: 'Order and construct diverse events and people into chronological structure', understanding: 'Summarise history as sequence of events across cultures and periods' },
+                            5: { kpi: 'To examine the significance of events that might be included on a timeline', knowledge: 'Examine in-depth historical knowledge across range of periods/civilizations', skills: 'Research historical topics and interpret specialized terminology in analysis', understanding: 'Justify how historical knowledge supports arguments and judgments' },
+                            6: { kpi: 'To identify and justify choice of significant events to be included in a chronological enquiry', knowledge: 'Give reasons for criteria used to determine historical significance', skills: 'Select and justify importance of relevant events for an enquiry', understanding: 'Reflect on how historical narratives are constructed by selecting significant events' }
+                        }
+                    },
+                    {
+                        id: 'his_2', subject: 'history', code: 'TG2',
+                        title: 'Contrasts and Connections',
+                        years: {
+                            1: { kpi: 'To describe how things have changed or stayed the same since parents/grandparents were children', knowledge: 'Describe basic similarities and differences between ways of life in different periods', skills: 'Make simple comparisons between different historical periods', understanding: 'Record similarities and differences in how history shows change over time' },
+                            2: { kpi: 'To compare similarities and differences of technology across different time periods with modern day', knowledge: 'Describe basic history of everyday objects (e.g. communication tools)', skills: 'Compare historical artifacts/technologies with modern equivalents', understanding: 'Reflect on how technology changes over time to suit human needs' },
+                            3: { kpi: 'To compare similarities and differences of aspects of an ancient civilisation\'s society with our lives today', knowledge: 'Examine broader knowledge of historical themes, concepts, and periods', skills: 'Compare and link different historical periods using evidence', understanding: 'Summarise connections and contrasts between different periods' },
+                            4: { kpi: 'To compare key similarities and differences of different time periods (social, ethical, cultural diversity)', knowledge: 'Describe different societal structures, beliefs, and values across time', skills: 'Compare and contrast social/cultural aspects of historical societies', understanding: 'Record similarities and differences in how diversity shaped historical societies' },
+                            5: { kpi: 'To explain similarities and differences of different time periods (social, ethical, cultural diversity)', knowledge: 'Examine detailed understanding of complex historical connections and contrasts', skills: 'Analyse and articulate deep links and contrasts across historical contexts', understanding: 'Summarise multidimensional nature of history and value of comparing narratives' },
+                            6: { kpi: 'To research and identify key similarities and differences of different time periods (local, Asian and world History)', knowledge: 'Identify and describe global history and local historical contexts', skills: 'Research and compare historical periods across different scales', understanding: 'Summarise how historical patterns repeat and vary globally' }
+                        }
+                    },
+                    {
+                        id: 'his_3', subject: 'history', code: 'TG3',
+                        title: 'Cause and consequence / significance',
+                        years: {
+                            1: { kpi: 'To pose questions such as: What happened and why?', knowledge: 'Identify simple causes and consequences (notable events like a battle)', skills: 'Give reasons why certain events (holidays, commemorations) are important', understanding: 'Record similarities and differences in how events lead to changes' },
+                            2: { kpi: 'To explain the impact of a person or event can have positive and/or negative consequences', knowledge: 'Identify concepts of cause and consequence (actions have results)', skills: 'Analyse and communicate positive/negative outcomes of historical events', understanding: 'Predict how historical actions have complex results affecting people over time' },
+                            3: { kpi: 'To consider how significant events in history have led to change within civilisations', knowledge: 'Grasp more complex causes and consequences in history', skills: 'Explain importance of key historical events/figures and analyze impacts', understanding: 'Justify multifaceted nature of causation and significance in history' },
+                            4: { kpi: 'To explain the concept of change over time, representing this with evidence on a timeline', knowledge: 'Describe concepts of historical change and continuity', skills: 'Draw and construct a visual timeline backed by historical evidence', understanding: 'Summarise how change is a fundamental part of history' },
+                            5: { kpi: 'To consider how significant ideas in history have shaped countries/societies in the world today', knowledge: 'Comprehensive understanding of historical causation and significance of ideas', skills: 'Evaluate relative importance of historical factors forming well-supported judgments', understanding: 'Reflect on complex interplay of causes and consequences in history' },
+                            6: { kpi: 'To research and represent significance of change over time using evidence to support events on a timeline', knowledge: 'Identify and explain advanced historical significance and causation', skills: 'Analyse and interpret rigorous evidence to map out significant changes', understanding: 'Evaluate impact of change on societies to determine significance' }
+                        }
+                    },
+                    {
+                        id: 'his_4', subject: 'history', code: 'TG4',
+                        title: 'Interpretations and use of evidence',
+                        years: {
+                            1: { kpi: 'To be able to learn from a range of artefacts/photographs/pictures provided', knowledge: 'Identify different types of simple historical evidence (pictures, stories)', skills: 'Distinguish between "make-believe" and historical facts', understanding: 'Summarise how history is based on evidence looked at in different ways' },
+                            2: { kpi: 'To explain answers to questions by referring to specific sources, such as objects, pictures or books', knowledge: 'Identify different types of historical evidence (primary vs secondary sources)', skills: 'Use and find evidence from specific sources to support claims', understanding: 'Justify how looking at evidence allows us to learn about history' },
+                            3: { kpi: 'To use more than one source of evidence for historical enquiry for accurate understanding', knowledge: 'Knowledge of various types of historical evidence and interpretations', skills: 'Critically examine different types of evidence and form opinions', understanding: 'Summarise that history can be interpreted in different ways' },
+                            4: { kpi: 'To compare different historical interpretations of the same event', knowledge: 'Recognise that historians may interpret same evidence differently', skills: 'Compare different historical interpretations of same event', understanding: 'Record similarities and differences in historical interpretations' },
+                            5: { kpi: 'To examine the nature of historical evidence and interpretations in depth', knowledge: 'Deep understanding of nature of historical evidence and interpretations', skills: 'Critically evaluate diverse historical evidence and interpretations', understanding: 'Justify importance of critical evaluation in interpreting historical narratives' },
+                            6: { kpi: 'To critically evaluate credibility and reliability of primary/secondary sources', knowledge: 'Identify bias, intent, and perspective in historical sources', skills: 'Analyse and evaluate credibility and reliability of primary/secondary sources', understanding: 'Evaluate why critical evaluation is essential to uncovering truth in history' }
+                        }
+                    },
+
+                    // DESIGN TECHNOLOGY (TG1 - TG3)
+                    {
+                        id: 'dt_1', subject: 'design_tech', code: 'TG1',
+                        title: 'Evaluate the wider social, economic, and environmental impact of technology and product design',
+                        years: {
+                            1: { kpi: 'To explore and evaluate (with support) a range of products', knowledge: 'Identification of simple components and materials (wood, plastic, fabric)', skills: 'Verbally articulate opinions on effectiveness/appeal with guidance', understanding: 'Summarise how products are designed for specific purposes and users' },
+                            2: { kpi: 'To evaluate their work and the work of others using a criteria', knowledge: 'Understand that "criteria" is a checklist of specific features/functions', skills: 'Compare finished product against design checklist to identify improvements', understanding: 'Evaluate whether a product actually solves the problem designed for' },
+                            3: { kpi: 'To investigate and analyse a range of existing products', knowledge: 'Identify key features in products such as user appeal and material choices', skills: 'Systematically examine a product to identify strengths and weaknesses', understanding: 'Reflect on how analysing existing products helps identify opportunities' },
+                            4: { kpi: 'To reflect and suggest improvements to the design', knowledge: 'Explain how designs can be iterative and improved upon', skills: 'Identify and communicate flaws or areas for enhancement', understanding: 'Record similarities and differences in design as continual refinement' },
+                            5: { kpi: 'To evaluate their ideas and products against their own design criteria and consider the view of others', knowledge: 'In-depth study of lifecycle of products and technology choices', skills: 'Evaluate complex issues such as sustainability of materials and processes', understanding: 'Summarise interconnectedness of technology, economy, and ethics' },
+                            6: { kpi: 'To reflect and justify improvements to the design', knowledge: 'Advanced understanding of iterative design and performance testing', skills: 'Analyse and interpret design performance to justify improvements', understanding: 'Justify why testing and user feedback are key to high-quality design' }
+                        }
+                    },
+                    {
+                        id: 'dt_2', subject: 'design_tech', code: 'TG2',
+                        title: 'Creatively solve problems using an iterative design process and design thinking strategies',
+                        years: {
+                            1: { kpi: 'To create drawings to design a product', knowledge: 'Awareness that 2D drawings are primary method for planning 3D objects', skills: 'Producing labelled sketches that communicate shape and function', understanding: 'Imagine how planning through drawing allows designers to solve problems' },
+                            2: { kpi: 'To follow a design criteria for their product', knowledge: 'Recognition that specific design choices satisfy user needs', skills: 'Creating simple plan or model including required brief elements', understanding: 'Justify why designers must follow criteria to ensure intended purpose' },
+                            3: { kpi: 'To generate and design alternative design ideas', knowledge: 'Awareness that a single problem can have many different solutions', skills: 'Sketching at least three distinct design concepts for a single brief', understanding: 'Reflect on why good designers explore alternatives before choosing' },
+                            4: { kpi: 'To design a criteria for their product to solve a problem', knowledge: 'Describe design criteria as a list of requirements for successful product', skills: 'Construct and plan a list of features a design must include', understanding: 'Record similarities and differences in how designs meet requirements' },
+                            5: { kpi: 'To research and develop design criteria to inform design of innovative, functional, appealing products', knowledge: 'Comprehensive knowledge of advanced design processes and strategies', skills: 'Independently and collaboratively use design thinking to solve problems', understanding: 'Justify value of a systematic, iterative approach in innovation' },
+                            6: { kpi: 'To generate, develop, model and communicate ideas (annotated sketches, cross-sectional/exploded diagrams, CAD)', knowledge: 'Describe complex communication techniques like cross-sections and CAD', skills: 'Use range of techniques (sketches, CAD) to refine and communicate ideas', understanding: 'Evaluate why clear communication is essential for accurate production' }
+                        }
+                    },
+                    {
+                        id: 'dt_3', subject: 'design_tech', code: 'TG3',
+                        title: 'Develop creative, technical, and practical expertise for a technological world',
+                        years: {
+                            1: { kpi: 'To measure out and mark out materials needed for a structure', knowledge: 'Recognition of standard measuring tools (rulers) and units (cm)', skills: 'Accurately measuring lengths and marking cutting lines on card or dowel', understanding: 'Justify why precision in measuring is essential for structural stability' },
+                            2: { kpi: 'To use equipment to cut wood (Wood work)', knowledge: 'Identification of correct tools (hacksaw, bench hook) and safety rules', skills: 'Successfully sawing wood using bench hook and rhythmic motion', understanding: 'Reflect on how tools allow us to alter materials safely' },
+                            3: { kpi: 'To use digital design applications to support the design', knowledge: 'Familiarity with interface of age-appropriate design software', skills: 'Manipulating 2D or 3D digital shapes to represent design ideas', understanding: 'Summarise how digital tools allow rapid visualization and testing' },
+                            4: { kpi: 'To join materials using permanent and temporary fixings', knowledge: 'Identify difference between permanent and temporary fixings', skills: 'Use and apply appropriate joining techniques based on durability', understanding: 'Record similarities and differences in how fixings serve different purposes' },
+                            5: { kpi: 'To assemble and construct a 3D structure using a range of materials', knowledge: 'Advanced understanding of contemporary technologies and applications', skills: 'Master a range of practical and digital fabrication techniques', understanding: 'Imagine how technical skills lead to contributions in a technological society' },
+                            6: { kpi: 'To use CAD effectively to enhance the design and know its advantages and disadvantages', knowledge: 'Identify advanced CAD features and trade-offs of digital vs physical models', skills: 'Use and interpret CAD software to visualize and modify designs', understanding: 'Justify why digital tools offer efficiency while physical models remain vital' }
+                        }
+                    },
+
+                    // DIGITAL LEARNING (TG1 - TG3)
+                    {
+                        id: 'dl_1', subject: 'digital_learning', code: 'TG1',
+                        title: 'Solve problems in a logical manner',
+                        years: {
+                            1: { kpi: 'Create sequences to solve problems (floor robots)', knowledge: 'Instructions must be given in precise step-by-step order for devices', skills: 'Create, input, and debug simple command sequences for floor robots', understanding: 'Record similarities and differences in how logical sequences control devices' },
+                            2: { kpi: 'Create and adjust sequences, identifying and correcting small errors (debugging)', knowledge: 'Algorithm is a precise set of instructions; debugging means fixing errors', skills: 'Construct sequence of commands and solve problems by correcting errors', understanding: 'Reflect on how errors in instructions are fixed through logical testing' },
+                            3: { kpi: 'Create programs that use loops to make sequences more efficient', knowledge: 'Loop repeats instructions; loops make programs shorter and efficient', skills: 'Identify repeating patterns and construct program using loops', understanding: 'Summarise how complex problems are solved by automating patterns' },
+                            4: { kpi: 'Use conditionals (if...then...) to create programs that make decisions', knowledge: 'Conditional statement (If...Then) allows computer to make choices', skills: 'Design and construct program using conditionals reacting to inputs', understanding: 'Record similarities and differences between human and computer decisions' },
+                            5: { kpi: 'Use variables to store, change, and use information in programs', knowledge: 'Variable is a named storage location for info that can change', skills: 'Create, name, and manipulate variables within a script', understanding: 'Predict why storing and updating info is needed for dynamic programs' },
+                            6: { kpi: 'Use abstraction to focus on important details and decomposition to break complex problems into parts', knowledge: 'Decomposition breaks problems down; Abstraction filters out details', skills: 'Analyse complex tasks by breaking into sub-tasks and abstracting features', understanding: 'Justify why simplifying and breaking down problems helps solve them' }
+                        }
+                    },
+                    {
+                        id: 'dl_2', subject: 'digital_learning', code: 'TG2',
+                        title: 'Explore key computational concepts to deepen understanding',
+                        years: {
+                            1: { kpi: 'Share ideas visually through digital drawings; Explore markup tools; Take photos using digital devices', knowledge: 'Digital devices offer cameras, markup, browsers to capture reality', skills: 'Operate digital camera; use markup tools; navigate safe websites', understanding: 'Record similarities and differences in how digital tools express ideas' },
+                            2: { kpi: 'Create digital drawings with text & labels; Use dictation tools; Use photo editing tools; Identify useful online info', knowledge: 'Digital tools combine media (text, images, voice) to communicate ideas', skills: 'Create labelled drawings; use dictation; edit photos (crop/filter)', understanding: 'Summarise how digital tools transform info and enhance presentation' },
+                            3: { kpi: 'Experience VR or AR to explore places/objects; Record and change style of video clips; Search internet effectively', knowledge: 'Media can be layered; search engines require specific keywords; VR/AR simulates', skills: 'Combine text and images; edit video footage; perform keyword searches', understanding: 'Imagine how different digital media formats allow us to experience world' },
+                            4: { kpi: 'Design presentations combining images, audio & video; Investigate AI in real life; Edit video clips; Typing accuracy', knowledge: 'Multimedia is engaging; AI performs tasks requiring intelligence; touch-typing helps', skills: 'Plan and edit multimedia; identify AI examples; demonstrate typing accuracy', understanding: 'Predict how various digital tools enhance communication and solve tasks' },
+                            5: { kpi: 'Use design elements (color, layout, font) for accessibility; Create images with AI; Edit video timelines; Typing speed', knowledge: 'Visual design choices determine accessibility; Generative AI creates imagery', skills: 'Apply design principles; construct effective prompts for AI; edit video timeline', understanding: 'Justify why digital creators combine aesthetic choices with correct tools' },
+                            6: { kpi: 'Design and publish a website; Apply UDL accessibility principles; Experiment with ML tools; Design 3D models', knowledge: 'Websites rely on hosting; Machine Learning learns patterns; UDL ensures access', skills: 'Construct and publish multi-page website; design 3D objects; train ML model', understanding: 'Evaluate how true digital innovation requires empathy and accessibility' }
+                        }
+                    },
+                    {
+                        id: 'dl_3', subject: 'digital_learning', code: 'TG3',
+                        title: 'Mitigate potential risks and make safe, secure, and responsible choices',
+                        years: {
+                            1: { kpi: 'Share devices with others; Follow routines for safe device use', knowledge: 'Technology resources are shared tools requiring care and routines', skills: 'Demonstrate safe handling of devices; practice turn-taking', understanding: 'Justify why responsible citizenship begins with respecting shared tools' },
+                            2: { kpi: 'Share devices with others; Follow routines for safe device use', knowledge: 'Devices are shared community resources with safety handling rules', skills: 'Cooperate when sharing devices; follow classroom routines consistently', understanding: 'Record similarities and differences in looking after equipment' },
+                            3: { kpi: 'Understand personal information privacy; Balance screen time with other activities', knowledge: 'Personal information uniquely identifies us and must stay private', skills: 'Distinguish between public/private info; limit screen use for rest', understanding: 'Reflect on how healthy digital life requires privacy and balance' },
+                            4: { kpi: 'Recognise digital footprints; Understand importance of respectful online communication', knowledge: 'Digital footprint is permanent trail; online messages lack body language', skills: 'Analyse how online actions build footprint; write kind messages', understanding: 'Record similarities and differences in how online history represents identity' },
+                            5: { kpi: 'Respond to unsafe behaviour; Distinguish facts, opinions & ads; Discuss safe & ethical AI use', knowledge: 'Not all online content is objective; AI carries ethical responsibilities', skills: 'Critically analyse media for bias; demonstrate strategies to report', understanding: 'Evaluate source and intent of media to maintain safe community' },
+                            6: { kpi: 'Discuss benefits & risks of AI in society; Identify ways to respond to harmful content; Interact safely online', knowledge: 'AI brings benefits and risks; info varies in reliability; reporting channels exist', skills: 'Debate ethical implications of AI; evaluate credibility of sources', understanding: 'Justify why critical questioning of info is essential for digital literacy' }
+                        }
+                    }
+                ],
+
+                get visibleYears() {
+                    if (this.selectedPhase === 'ks1') return [1, 2];
+                    if (this.selectedPhase === 'lks2') return [3, 4];
+                    if (this.selectedPhase === 'uks2') return [5, 6];
+                    return [1, 2, 3, 4, 5, 6];
+                },
+
+                setPhaseFilter(phase) {
+                    this.selectedPhase = phase;
+                    const years = this.visibleYears;
+                    if (!years.includes(this.selectedYear)) {
+                        this.selectedYear = years[0];
+                    }
+                },
+
+                getYearPhase(y) {
+                    if (y <= 2) return 'KS1';
+                    if (y <= 4) return 'LKS2';
+                    return 'UKS2';
+                },
+
+                isYearVisible(y) {
+                    return this.visibleYears.includes(y);
+                },
+
+                getTermUnitsForYear(y) {
+                    const units = this.termlyData[y] || [];
+                    if (this.selectedTermFilter === 'all') return units;
+                    return units.filter(u => u.term === this.selectedTermFilter);
+                },
+
+                get filteredTransferGoals() {
+                    return this.transferGoals.filter(tg => {
+                        const matchSubject = this.selectedSubject === 'all' || tg.subject === this.selectedSubject;
+                        const matchSearch = !this.searchQuery || 
+                            tg.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                            tg.code.toLowerCase().includes(this.searchQuery.toLowerCase());
+                        return matchSubject && matchSearch;
+                    });
+                },
+
+                get allGoalsList() {
+                    return this.transferGoals.map(tg => ({
+                        id: tg.id,
+                        subject: tg.subject,
+                        code: tg.code,
+                        title: tg.title
+                    }));
+                },
+
+                getSubjectIcon(s) {
+                    if (s === 'geography') return 'fa-solid fa-earth-americas text-[#219360]';
+                    if (s === 'history') return 'fa-solid fa-landmark text-[#AE8B5A]';
+                    if (s === 'design_tech') return 'fa-solid fa-compass-drafting text-[#011A57]';
+                    if (s === 'digital_learning') return 'fa-solid fa-laptop-code text-purple-700';
+                    return 'fa-solid fa-book';
+                },
+
+                getSubjectTitle(s) {
+                    if (s === 'geography') return 'Geography';
+                    if (s === 'history') return 'History';
+                    if (s === 'design_tech') return 'Design Technology';
+                    if (s === 'digital_learning') return 'Digital Learning';
+                    return s;
+                },
+
+                getGoalById(id) {
+                    return this.transferGoals.find(g => g.id === id) || this.transferGoals[0];
+                },
+
+                getTGsBySubjectAndYear(subj, year) {
+                    const matches = [];
+                    this.transferGoals.forEach(tg => {
+                        if ((subj === 'all' || tg.subject === subj) && tg.years[year]) {
+                            matches.push({
+                                code: tg.code,
+                                title: tg.title,
+                                kpi: tg.years[year].kpi,
+                                knowledge: tg.years[year].knowledge,
+                                skills: tg.years[year].skills,
+                                understanding: tg.years[year].understanding
+                            });
+                        }
+                    });
+                    return matches;
+                },
+
+                getTGKpi(subj, year) {
+                    const match = this.transferGoals.find(tg => tg.subject === subj && tg.years[year]);
+                    return match ? match.years[year].kpi : 'Standard Grade-Level Outcome Benchmark';
+                },
+
+                addToBasket(subject, tgCode, tgTitle, year, kpiText) {
+                    this.savedKPIs.push({
+                        subject: this.getSubjectTitle(subject),
+                        tgCode: tgCode,
+                        tgTitle: tgTitle,
+                        year: year,
+                        kpiText: kpiText || 'Standard KPI'
+                    });
+                    this.showBasket = true;
+                },
+
+                updateGraspsKPIOptions() {
+                    const termUnits = this.termlyData[this.graspsYear] || [];
+                    let kpis = [];
+                    termUnits.forEach(u => {
+                        Object.keys(u.subjects).forEach(sKey => {
+                            if (sKey === this.graspsSubject || this.graspsSubject === 'all') {
+                                const sub = u.subjects[sKey];
+                                kpis.push({
+                                    id: u.termId + '_' + sub.tgCode,
+                                    tgCode: sub.tgCode,
+                                    text: sub.kpi
+                                });
+                            }
+                        });
+                    });
+                    this.availableGraspsKPIs = kpis;
+                    this.updateGraspsProductList();
+                },
+
+                updateGraspsProductList() {
+                    if (this.graspsProductType === 'Written') {
+                        this.graspsProductOptions = ['Written Itinerary & Proposal', 'Field Guide / Brochure', 'Analytical Report', 'Policy Brief'];
+                    } else if (this.graspsProductType === 'Oral') {
+                        this.graspsProductOptions = ['Presentation to Executives', 'Podcast / Audio Guide', 'Debate Speech', 'Broadcast Newscast'];
+                    } else if (this.graspsProductType === 'Visual') {
+                        this.graspsProductOptions = ['Scale Model & Diagram', '3D CAD Prototype', 'Infographic & Route Map', 'Exhibition Display'];
+                    } else if (this.graspsProductType === 'Digital') {
+                        this.graspsProductOptions = ['Interactive Web Portal', 'Mobile App Prototype', 'Edited Video Documentary', 'Scratch/Block Code Game'];
+                    }
+                    this.graspsTask.product = this.graspsProductOptions[0];
+                },
+
+                addBasketKPIToGrasps(item) {
+                    if (!this.graspsTask.selectedKPIs.includes(item.kpiText)) {
+                        this.graspsTask.selectedKPIs.push(item.kpiText);
+                    }
+                },
+
+                addAllBasketToGrasps() {
+                    this.savedKPIs.forEach(k => this.addBasketKPIToGrasps(k));
+                },
+
+                loadGraspsPreset(type) {
+                    if (type === 'tourism') {
+                        this.graspsSubject = 'geography';
+                        this.graspsYear = 2;
+                        this.updateGraspsKPIOptions();
+                        this.graspsTask = {
+                            title: 'KL & Regional Tourism Tour Guide Challenge',
+                            selectedKPIs: [
+                                'To ask and answer questions about comparing data.',
+                                'To compare two contrasting habitats and locate world continents.'
+                            ],
+                            goal: 'Your goal is to guide foreign visitors through the key geographical and historical highlights of Malaysia and surrounding regions.',
+                            role: 'Tour Guide / Travel Agent',
+                            audience: 'Group of Foreign Visitors / Tourists',
+                            situation: 'You are an intern at the regional tourism office. You must design a 4-day tour plan showing sites that best illustrate climate, ecosystems, and human habitats.',
+                            product: 'Written Itinerary & Proposal',
+                            standards: 'Your work will be judged by inclusion of key geographic habitats, route map clarity, and site rationales.'
+                        };
+                    } else if (type === 'packaging') {
+                        this.graspsSubject = 'design_tech';
+                        this.graspsYear = 4;
+                        this.updateGraspsKPIOptions();
+                        this.graspsTask = {
+                            title: 'Eco-Friendly Container & Packaging Design',
+                            selectedKPIs: [
+                                'To reflect and suggest targeted design improvements.',
+                                'To design explicit criteria for a product to solve a specific problem.'
+                            ],
+                            goal: 'The goal is to minimize material waste and transport costs for shipping bulk eco-goods.',
+                            role: 'Packaging / Mechanical Engineer',
+                            audience: 'Company Executives / Board Members',
+                            situation: 'Company executives need a cost-effective, durable container that uses recycled materials and optimizes volume for safe transport.',
+                            product: 'Scale Model & Diagram',
+                            standards: 'Your proposal should demonstrate cost-effective material usage, maximized shipping volume, and secure fixings.'
+                        };
+                    } else if (type === 'history') {
+                        this.graspsSubject = 'history';
+                        this.graspsYear = 3;
+                        this.updateGraspsKPIOptions();
+                        this.graspsTask = {
+                            title: 'Ancient Civilizations Museum Exhibition',
+                            selectedKPIs: [
+                                'To represent change over time with timeline evidence.',
+                                'To compare aspects of an ancient civilisation with our lives today.'
+                            ],
+                            goal: 'Your goal is to curate an engaging museum exhibit comparing ancient civilisations with modern everyday life.',
+                            role: 'Museum Curator / Historian',
+                            audience: 'Museum Visitors & Historians',
+                            situation: 'The National Museum is opening a new youth wing. You need to select artifacts and design a visual exhibit with timeline evidence.',
+                            product: 'Exhibition Display',
+                            standards: 'Your exhibit will be judged by chronological accuracy of timeline evidence and clear historical comparisons.'
+                        };
+                    }
+                },
+
+                loadTermIntoGrasps(unit, yearNum) {
+                    this.activeTab = 'grasps';
+                    this.graspsYear = yearNum;
+                    this.graspsTask.title = `${unit.title} Performance Task`;
+                    this.graspsTask.situation = `In our Year ${yearNum} ${unit.termName} unit, you are challenged to answer: "${unit.bigQuestion}" through an authentic project.`;
+                    this.graspsTask.goal = `Apply key skills from ${unit.title} to resolve this real-world scenario.`;
+                    this.graspsTask.selectedKPIs = Object.values(unit.subjects).map(s => s.kpi);
+                },
+
+                autoGenerateGRASPS() {
+                    const yearPhase = this.getYearPhase(this.graspsYear);
+                    const subjTitle = this.getSubjectTitle(this.graspsSubject);
+                    
+                    this.graspsTask.title = `${subjTitle} Year ${this.graspsYear} (${yearPhase}) Authentic Task`;
+                    this.graspsTask.goal = `Your task is to apply core ${subjTitle} skills to resolve a real-world scenario in Year ${this.graspsYear}.`;
+                    this.graspsTask.situation = `In the context of our Year ${this.graspsYear} ${subjTitle} enquiry, you have been commissioned to analyze real-world data and craft a functional solution.`;
+                    this.graspsTask.standards = `Your work will be judged by accurate application of Year ${this.graspsYear} ${subjTitle} KPIs, clear evidence, and high quality execution.`;
+                },
+
+                saveGraspsTaskToBasket() {
+                    this.savedKPIs.push({
+                        subject: this.getSubjectTitle(this.graspsSubject),
+                        tgCode: 'GRASPS Task',
+                        tgTitle: this.graspsTask.title,
+                        year: this.graspsYear,
+                        kpiText: `[GRASPS Task: ${this.graspsTask.role} for ${this.graspsTask.audience}] ${this.graspsTask.goal}`
+                    });
+                    this.showBasket = true;
+                },
+
+                init() {
+                    this.updateGraspsKPIOptions();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
