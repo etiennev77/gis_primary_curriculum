@@ -1,0 +1,18 @@
+# GIS Primary Curriculum Navigator — Netlify configuration
+# Plain static site: nothing to compile.
+
+[build]
+  command = ""
+  publish = "."
+
+# The navigator is embedded in a Google Site, so it must stay frameable.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors 'self' https://sites.google.com https://*.googleusercontent.com"
+
+# HTML revalidates so teachers get each update instead of a stale copy.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
