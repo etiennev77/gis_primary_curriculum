@@ -187,6 +187,20 @@ mark{background:#F5EFC9;color:inherit;padding:0 1px}
 .printhint button{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:2px;
   padding:2px 10px;margin-left:12px;font-size:12px;cursor:pointer}
 .printhint button:hover{border-color:#fff}
+.pfallback{position:fixed;inset:0;z-index:1000;background:rgba(1,26,87,.45);display:flex;
+  align-items:center;justify-content:center;padding:24px}
+.pfbox{background:#fff;border-top:5px solid var(--green);border-radius:2px;max-width:620px;width:100%;
+  padding:26px 30px;box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.pfbox h4{margin:0 0 10px;font-size:19px;color:var(--gold)}
+.pfbox p{margin:0 0 14px;font-size:14px;line-height:1.6;color:var(--ink)}
+.pflink{display:inline-block;background:var(--green);color:#fff;text-decoration:none;
+  padding:9px 16px;border-radius:2px;font-size:14px}
+.pflink:hover{background:#1b7d51}
+.pfnote{font-size:12.5px;color:rgba(1,26,87,.6)}
+.pfrow{display:flex;gap:8px;margin-bottom:14px}
+.pfrow input{flex:1;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:2px;
+  font-family:inherit;font-size:12.5px;color:var(--ink);background:#fbfaf7}
+@media print{.pfallback{display:none!important}}
 .printbtn{background:var(--green);color:#fff;border:0;padding:9px 16px;border-radius:2px;cursor:pointer;font-size:13.5px}
 .printbtn:hover{background:#1b7d51}
 .rowend{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
@@ -1834,19 +1848,53 @@ window.GIS_PROG = [
   function inFrame(){
     try{ return window.self !== window.top; }catch(e){ return true; }
   }
+  /* The plan travels in the URL so a printable copy can open in its own tab.
+     Only what the teacher actually changed is carried — everything the planner
+     generates from the curriculum map is rebuilt at the other end, which keeps
+     the link short enough to paste by hand when it comes to that. */
+  function compactPlan(p){
+    var base = blankPlan(p.unit), diff = {};
+    function walk(cur, ref, path){
+      for(var k in cur){
+        if(!Object.prototype.hasOwnProperty.call(cur,k)) continue;
+        var a = cur[k], b = ref ? ref[k] : undefined;
+        var key = path ? path+"."+k : k;
+        if(a && typeof a === "object" && !Array.isArray(a)){ walk(a, b || {}, key); }
+        else if(JSON.stringify(a) !== JSON.stringify(b)){ diff[key] = a; }
+      }
+    }
+    walk(p, base, "");
+    delete diff.unit; delete diff.year;
+    return {u:p.unit, d:diff};
+  }
+  function expandPlan(c){
+    if(typeof c.u !== "number" || !UNITS[c.u]) return null;
+    var p = blankPlan(c.u);
+    Object.keys(c.d || {}).forEach(function(key){
+      var parts = key.split("."), o = p;
+      for(var i=0;i<parts.length-1;i++){ if(o[parts[i]]==null) o[parts[i]]={}; o = o[parts[i]]; }
+      o[parts[parts.length-1]] = c.d[key];
+    });
+    return p;
+  }
   function printPayload(){
-    if(state.view === "plan" && state.plan) return {v:"plan", plan: state.plan};
-    return {v:"unit", u: state.unit};
+    if(state.view === "plan" && state.plan) return {v:"p", c: compactPlan(state.plan)};
+    return {v:"u", u: state.unit};
   }
   function applyPrintPayload(payload){
-    if(payload.v === "plan" && payload.plan){
-      state.view = "plan"; state.planYear = payload.plan.year || 2; state.plan = payload.plan;
+    if(payload.v === "p" && payload.c){
+      var p = expandPlan(payload.c);
+      if(!p) return false;
+      state.view = "plan"; state.planYear = UNITS[p.unit].y; state.plan = p;
       state.newLesson = emptyLesson(); return true;
     }
-    if(payload.v === "unit" && typeof payload.u === "number" && UNITS[payload.u]){
+    if(payload.v === "u" && typeof payload.u === "number" && UNITS[payload.u]){
       state.view = "year"; state.year = UNITS[payload.u].y; state.unit = payload.u; return true;
     }
     return false;
+  }
+  function printURL(){
+    return location.origin + location.pathname + "#print=" + encodeURIComponent(JSON.stringify(printPayload()));
   }
   function showPrintHint(){
     var d = document.createElement("div");
@@ -1867,16 +1915,52 @@ window.GIS_PROG = [
     setTimeout(function(){ window.print(); }, 450);
     return true;
   }
+  /* Google Sites sandboxes its embeds without allow-popups, so window.open is
+     refused outright and no browser setting will change that. When that happens
+     we hand the teacher the link instead. */
+  function printFallback(url){
+    var old = document.getElementById("printfallback");
+    if(old) old.parentNode.removeChild(old);
+    var d = document.createElement("div");
+    d.id = "printfallback";
+    d.className = "pfallback";
+    d.innerHTML =
+      '<div class="pfbox">'
+      + '<h4>Open the printable version in a new tab</h4>'
+      + '<p>This page is embedded in another site, and embedded pages are not allowed to open '
+      + 'tabs or show the print dialog. Use the link below and print from there — everything you '
+      + 'have typed is included.</p>'
+      + '<p><a class="pflink" href="' + esc(url) + '" target="_blank" rel="noopener">Open printable version</a>'
+      + ' <span class="pfnote">(if the link does nothing, copy it instead)</span></p>'
+      + '<div class="pfrow"><input id="pfurl" readonly value="' + esc(url) + '">'
+      + '<button class="ghost" id="pfcopy">Copy link</button></div>'
+      + '<p class="pfnote">Tip: opening the navigator directly on its own web address, rather than '
+      + 'through the embed, lets the print button work normally.</p>'
+      + '<button class="ghost" id="pfclose">Close</button>'
+      + '</div>';
+    document.body.appendChild(d);
+    var input = document.getElementById("pfurl");
+    input.focus(); input.select();
+    document.getElementById("pfcopy").addEventListener("click", function(){
+      var btn = this, done = function(ok){ btn.textContent = ok ? "Copied" : "Press Ctrl/Cmd+C"; };
+      input.focus(); input.select();
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(input.value).then(function(){done(true)}, function(){
+            try{ done(document.execCommand("copy")); }catch(e){ done(false); }
+          });
+        } else { done(document.execCommand("copy")); }
+      }catch(e){ done(false); }
+    });
+    document.getElementById("pfclose").addEventListener("click", function(){
+      d.parentNode.removeChild(d);
+    });
+  }
   function doPrint(btn){
     if(!inFrame()){ window.print(); return; }
-    var url = location.origin + location.pathname + "#print=" + encodeURIComponent(JSON.stringify(printPayload()));
-    var w = null;
+    var url = printURL(), w = null;
     try{ w = window.open(url, "_blank"); }catch(e){ w = null; }
-    if(!w && btn){
-      var original = btn.textContent;
-      btn.textContent = "Allow pop-ups, then try again";
-      setTimeout(function(){ btn.textContent = original; }, 2600);
-    }
+    if(!w) printFallback(url);
   }
 
   /* ---------------- unit planner ---------------- */
